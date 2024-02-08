@@ -1,13 +1,6 @@
-# hexpresso
-F77     =       gfortran
-FFLAGS  =       -Ofast -ffpe-summary='none' -mcmodel=medium #-fallow-argument-mismatch # 
-LIBS    = -L -lgfortran -L/usr/lib/x86_64-linux-gnu/lapack -llapack -lblas
-#LIBS    = -L${MKLROOT} -llapack -lblas  -lm -ldl
-
-#theogate
-#F77     =       ifort
-#FFLAGS  =       -Ofast -ffpe-summary='none'  -mcmodel=large
-#LIBS    = -L${MKLROOT} -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5
+F77     =       ifx
+FFLAGS  =       -Ofast -mcmodel=medium #-fallow-argument-mismatch # -ffpe-summary='none' 
+LIBS    = -L${MKLROOT} -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5
 
 # ohne -g und -traceback erzeugt spoleinv runtime error in smatest,rrandb subroutinen wenn auf die variable nbess zugegriffen wird;
 # mit den optionen tritt der fehler nicht auf;

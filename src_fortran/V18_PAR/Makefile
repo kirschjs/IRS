@@ -1,17 +1,9 @@
-CC          = mpicc
-F77         = mpif77
+CC          = mpiicx
+F77         = mpiifx
+FOPTS       = -Ofast -mcmodel=medium #-fallow-argument-mismatch -ffpe-summary=none 
 
-FOPTS  =       -Ofast -ffpe-summary=none -mcmodel=medium -fallow-argument-mismatch
+LIBS    = -L${MKLROOT} -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5
 
-#COPTS       = -O2 -Wall -ggdb3
-#COPTS       = -O2
-# option -xW generates code exclusivly for P4 processors
-#FOPTS       = -O2 -xW -mcmodel medium -shared-intel
-#MAKRO       = -DPC_FORTRAN 
-#-DDEBUG_INT -DDEBUG_DOUBLE
-#RM          = /bin/rm -f
-#LIBS    =       -L/home/hmh/lib -L/opt/intel_mkl_61/lib -leispack -lsu2 -lmkl -lmkl_lapack -lmkl_lapack32 -lguide -lblas
-#    "$@" expands to the target; "$?" expands to the dependency list
 CFLAGS      = -o $@ $? $(PRECFLAGS)
 
 .c.o:
@@ -29,7 +21,7 @@ mpi_quaf_v7: mpi_quaf_v7.o
 	$(F77) $(FOPTS) $(MAKRO) -o $@ mpi_quaf_v7.o   $(LIBS) $(MPI) 
 
 sammel: sammel.o
-	mpif77 -Ofast -ffpe-summary=none -mcmodel=medium -o $@ sammel.o $(LIBS)
+	 $(F77) $(FOPTS) $(MAKRO) -o $@ sammel.o $(LIBS)
 
 clean:
 	$(RM) *.o *.exe pvm_tniq *~
