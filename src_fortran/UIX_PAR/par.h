@@ -1,8 +1,8 @@
       PARAMETER (NZOPER=17, NZOPOB=15, NZOPLU=8, NZTMAX=4,
      *           NZFMAX=50, NZCMAX=6, MZGMAX=14, NZLWMA=20,
      *           NZRHOM=100, NZPARM=100, MZPARM=50, NZPOMA=3,
-     *           NZIQMA=9, NZPOTM=84,  NDIM=840,
-     *           NDIM1=48000, NDIM5=9000, NPDC=8040)
+     *           NZIQMA=9, NZPOTM=84,  NDIM=270,
+     *           NDIM1=30000, NDIM5=9000, NPDC=1100)
 
 C     NZOPER: ANZAHL DER OPERATOREN IN QUAF
 C     NZOPOB:   "     "      "      "  OBER

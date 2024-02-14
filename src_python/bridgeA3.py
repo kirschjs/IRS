@@ -21,54 +21,52 @@ class A3settings:
             shouldExist:        should the unique directory already exist (or should it not)
             mpiProcesses:       number of MPI processes to run
         """
-        # I don't know why we have both backupDir, as well as litpathHe3
+
         self.backupDirectory = os.getenv(
             'HOME'
-        ) + '/scratch/compton_tmp/'  # where results are stored at the end
-        #self.temporaryDir: working storage; deleteable
-        if csf:
-            self.temporaryDirectory = os.getenv(
-                'HOME') + '/localscratch/' + uniqueDirectory + '/'
-        else:
-            self.temporaryDirectory = '/tmp/' + uniqueDirectory + '/'
+        ) + '/scratch/compton_IRS/' + uniqueDirectory + '/'  # where results are stored at the end
+        if not os.path.exists(self.backupDirectory):
+            os.makedirs(self.backupDirectory, exist_ok=True)
+
+        self.temporaryDirectory = '/tmp/' + uniqueDirectory + '/'
+
         if shouldExist:
-            if not os.path.exists(self.backupDirectory + "/" +
-                                  uniqueDirectory):
-                print("uniqueDirectory ",
-                      uniqueDirectory,
-                      " does not exists",
+            if ((not os.path.exists(self.temporaryDirectory)) &
+                (not os.path.exists(self.backupDirectory))):
+                print(" Neither uniqueDirectory:\n$",
+                      self.temporaryDirectory,
+                      "\n nor its backupDirectory:\n$",
+                      self.backupDirectory,
+                      "\n do exist.",
                       file=sys.stderr)
-                #exit(-1)
+                exit(-1)
         else:
-            if os.path.exists(self.backupDirectory + "/" + uniqueDirectory):
+            print(self.temporaryDirectory)
+            if os.path.exists(self.temporaryDirectory):
                 print("uniqueDirectory ",
                       uniqueDirectory,
                       " already exists",
                       file=sys.stderr)
-                #exit(-1)
+                ctn = input('(D)elete and continue or (P)roceed?')
+                if ctn == 'D':
+                    shutil.rmtree(self.temporaryDirectory)
+                    os.makedirs(self.temporaryDirectory)
             else:
-                os.makedirs(self.backupDirectory + uniqueDirectory)
-        #if os.path.exists(self.temporaryDirectory):
-        #    print("temporaryDirectory ",
-        #          self.temporaryDirectory,
-        #          " already exists; deleting first",
-        #          file=sys.stderr)
-        #    shutil.rmtree(self.temporaryDirectory)
-        #os.makedirs(self.temporaryDirectory)
-        self.backupDirectory += uniqueDirectory + '/'  #add trailing slash
+                os.makedirs(self.temporaryDirectory)
+                print('Created tmp dir: ', self.temporaryDirectory)
+
         os.chdir(self.temporaryDirectory)
-        self.litDirectory = self.temporaryDirectory  # can delete one
-        self.resultsDirectory = self.litDirectory + 'results/'
+
+        self.resultsDirectory = self.temporaryDirectory + 'results/'
         os.makedirs(self.resultsDirectory, exist_ok=True)
-        self.helionDirectory = self.litDirectory + 'he3/'
+        self.helionDirectory = self.temporaryDirectory + 'he3/'
         os.makedirs(self.helionDirectory, exist_ok=True)
-        (totSpace, usedSpace,
-         freeSpace) = shutil.disk_usage(self.backupDirectory)
+        # backup in home, and hence, we check whether there is enough space *there*
+        (totSpace, usedSpace, freeSpace) = shutil.disk_usage(os.getenv('HOME'))
         self.backupFree = int(0.1 * totSpace)
         totSpace, usedSpace, freeSpace = shutil.disk_usage(
             self.temporaryDirectory)
         self.temporaryFree = int(0.1 * totSpace)
-        #MaxProc = int(len(os.sched_getaffinity(0)) / 1)
         self.maxProcesses = int(mpiProcesses)
         print(">>>>>>>>>>>>> max # Processes=", self.maxProcesses)
 
@@ -130,7 +128,7 @@ class A3settings:
         ]
     }
 
-    ScatteringChannels = ['0.5^-']  #, '1.5^-']
+    ScatteringChannels = ['0.5^-', '1.5^-']
     #                  realistic    L>0 (only)         deuteron
     boundstateChannel = 'npp0.5^+'
 

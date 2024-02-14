@@ -53,19 +53,14 @@ with open(set.resultsDirectory + 'kRange.dat', 'wb') as f:
     f.truncate()
 f.close()
 suffix = '_ref'
-basisPath = set.helionDirectory + 'basis_struct/'
-he_iw, he_rw, he_frgs = retrieve_he3_M(basisPath + 'INQUA_V18' + suffix)
+he_iw, he_rw, he_frgs = retrieve_he3_M(set.resultsDirectory + 'INQUA_V18' +
+                                       suffix)
 HelBasDimRef = len(sum(sum(he_rw, []), []))
-finalStatePaths = [
-    set.litDirectory[:-1] + '-%d/' % nB for nB in ScatteringBases
-]
-for nB in range(numScatteringBases):
-    wrkDir = finalStatePaths[nB]
-    basisPath = wrkDir + 'basis_struct/'
-    print(nB, basisPath)
 
-    suffix = '_fin'
-    final_iw, final_rw, final_frgs = retrieve_he3_M(basisPath +
+for nB in range(numScatteringBases):
+
+    suffix = '_fin-%d' % int(nB + 1)
+    final_iw, final_rw, final_frgs = retrieve_he3_M(set.resultsDirectory +
                                                     'INQUA_V18%s' % suffix)
     FinBasDimRef = len(sum(sum(final_rw, []), []))
     with open(
@@ -76,7 +71,6 @@ for nB in range(numScatteringBases):
         f.truncate()
     f.close()
     if 'rhs' in set.cal:
-        os.chdir(wrkDir)
         for scatteringChannel in set.ScatteringChannels:
             Jscattering = float(scatteringChannel.split('^')[0])
             JscatteringString = '%s' % str(Jscattering)[:3]
@@ -84,9 +78,8 @@ for nB in range(numScatteringBases):
                 set.multipolarity, set.J0, Jscattering)
             HelBasDim = sum([
                 len(ln.split()[1:])
-                for ln in open(set.helionDirectory +
-                               'basis_struct/SLITbas_full_%s.dat' %
-                               set.boundstateChannel)
+                for ln in open(set.resultsDirectory +
+                               'SLITbas_full_%s.dat' % set.boundstateChannel)
             ])
             lfrags = []
             sfrags = []
@@ -95,29 +88,31 @@ for nB in range(numScatteringBases):
             #    for scfg in channels[boundstatekanal][lcfg][1]:
             #        lfrags = lfrags + [channels[boundstatekanal][lcfg][0]]
             fragfile = [
-                ln for ln in open(set.helionDirectory +
-                                  'basis_struct/Sfrags_LIT_%s.dat' %
-                                  set.boundstateChannel)
+                ln for ln in open(set.resultsDirectory +
+                                  'Sfrags_LIT_%s.dat' % set.boundstateChannel)
             ]
             lfrags = [fr.split(' ')[1].strip() for fr in fragfile]
             sfrags = [fr.split(' ')[0] for fr in fragfile]
             # read widths and frags of the LIT basis as determined via
             # v18uix_LITbasis.py
             fragfile = [
-                ln for ln in open(wrkDir + 'basis_struct/Sfrags_LIT_%s.dat' %
-                                  scatteringChannel)
+                ln for ln in open(set.resultsDirectory +
+                                  'Sfrags_LIT_%s_BasNR-%d.dat' %
+                                  (scatteringChannel, int(nB + 1)))
             ]
             lfrags2 = [fr.split(' ')[1].strip() for fr in fragfile]
             sfrags2 = [fr.split(' ')[0] for fr in fragfile]
             intwLIT = [
                 np.array(ln.split()).astype(float).tolist()
-                for ln in open(wrkDir + 'basis_struct/Sintw3heLIT_%s.dat' %
-                               scatteringChannel)
+                for ln in open(set.resultsDirectory +
+                               'Sintw3heLIT_%s_BasNR-%d.dat' %
+                               (scatteringChannel, int(nB + 1)))
             ]
             relwLIT = [
                 np.array(ln.split()).astype(float).tolist()
-                for ln in open(wrkDir + 'basis_struct/Srelw3heLIT_%s.dat' %
-                               scatteringChannel)
+                for ln in open(set.resultsDirectory +
+                               'Srelw3heLIT_%s_BasNR-%d.dat' %
+                               (scatteringChannel, int(nB + 1)))
             ]
             if 'dbg' in set.cal:
                 print(
@@ -129,21 +124,25 @@ for nB in range(numScatteringBases):
             if 'rhs_lu-ob-qua' in set.cal:
                 he_iw_2 = [
                     np.array(ln.split()).astype(float).tolist()
-                    for ln in open(set.helionDirectory +
-                                   'basis_struct/Sintw3heLIT_%s.dat' %
+                    for ln in open(set.resultsDirectory +
+                                   'Sintw3heLIT_%s.dat' %
                                    set.boundstateChannel)
                 ]
                 he_rw_2 = [
                     np.array(ln.split()).astype(float).tolist()
-                    for ln in open(set.helionDirectory +
-                                   'basis_struct/Srelw3heLIT_%s.dat' %
+                    for ln in open(set.resultsDirectory +
+                                   'Srelw3heLIT_%s.dat' %
                                    set.boundstateChannel)
                 ]
                 for lit_zerl in range(len(lfrags2)):
-                    if os.path.isdir(wrkDir + 'tmp_%d' % lit_zerl) == False:
-                        subprocess.check_call(
-                            ['mkdir', '-p', wrkDir + 'tmp_%d' % lit_zerl])
-                    os.chdir(wrkDir + 'tmp_%d' % lit_zerl)
+
+                    if os.path.isdir(set.resultsDirectory +
+                                     'tmp_%d' % lit_zerl) == False:
+                        subprocess.check_call([
+                            'mkdir', '-p',
+                            set.resultsDirectory + 'tmp_%d' % lit_zerl
+                        ])
+                    os.chdir(set.resultsDirectory + 'tmp_%d' % lit_zerl)
                     for file in os.listdir(os.getcwd()):
                         if fnmatch.fnmatch(file, '*J%s*.log' % Jscattering):
                             if 'dbg' in set.cal:
@@ -161,20 +160,22 @@ for nB in range(numScatteringBases):
                                  relwi=rwtttmp,
                                  anzo=11,
                                  LREG='  1  0  0  0  0  0  0  0  0  1  1',
-                                 outFileNm=wrkDir + 'tmp_%d/INQUA' %
-                                 (lit_zerl))
+                                 outFileNm=set.resultsDirectory +
+                                 'tmp_%d/INQUA' % (lit_zerl))
                     lit_3inlu(mul=set.multipolarity,
                               frag=lfrags + [lfrags2[lit_zerl]],
-                              fn=wrkDir + 'tmp_%d/INLU' % (lit_zerl))
+                              fn=set.resultsDirectory + 'tmp_%d/INLU' %
+                              (lit_zerl))
                     lit_3inob(fr=sfrags + [sfrags2[lit_zerl]],
-                              fn=wrkDir + 'tmp_%d/INOB' % (lit_zerl))
+                              fn=set.resultsDirectory + 'tmp_%d/INOB' %
+                              (lit_zerl))
             leftpar = int(1 + 0.5 *
                           (1 + (-1)**
                            (int(set.channels[scatteringChannel][0][0][0]) +
                             int(set.channels[scatteringChannel][0][0][1]))))
 
             def cal_rhs_lu_ob_qua(para, procnbr):
-                slave_pit = wrkDir + 'tmp_%d' % para
+                slave_pit = set.resultsDirectory + 'tmp_%d' % para
                 cmdlu = set.litBinDir + 'juelmanoo.exe'
                 cmdob = set.litBinDir + 'jobelmanoo.exe'
                 cmdqu = set.litBinDir + 'jquelmanoo.exe'
@@ -201,7 +202,7 @@ for nB in range(numScatteringBases):
                 print('process = %d-1 : qual exits.' % para)
 
             def cal_rhs_end(para, procnbr):
-                slave_pit = wrkDir + 'tmp_%d/' % para[3]
+                slave_pit = set.resultsDirectory + 'tmp_%d/' % para[3]
                 inenf = 'inenlit%d-%d_J%3.1f_mJ%3.1f-mL%d.log' % (
                     para[1], para[2], Jscattering, para[0][1], para[0][0])
                 outfseli = 'endlit%d-%d_J%3.1f_mJ%3.1f-mL%d.log' % (
@@ -286,8 +287,9 @@ for nB in range(numScatteringBases):
                 pool.join()
                 for lit_zerl in range(len(lfrags2)):
                     shutil.copyfile(
-                        wrkDir + 'tmp_%d/QUAOUT' % lit_zerl, wrkDir +
-                        'tmp_%d/QUAOUT_J%3.1f' % (lit_zerl, Jscattering))
+                        set.resultsDirectory + 'tmp_%d/QUAOUT' % lit_zerl,
+                        set.resultsDirectory + 'tmp_%d/QUAOUT_J%3.1f' %
+                        (lit_zerl, Jscattering))
                     #os.system('cp ' + wrkDir + 'tmp_%d/QUAOUT ' % lit_zerl +
                     #          wrkDir + 'tmp_%d/QUAOUT_J%3.1f' %
                     #          (lit_zerl, Jscattering))
@@ -297,9 +299,9 @@ for nB in range(numScatteringBases):
                     print('(J=%s)  werkle in %d' % (Jscattering, lit_zerl))
                     try:
                         shutil.copyfile(
-                            wrkDir + 'tmp_%d/QUAOUT_J%3.1f' %
-                            (lit_zerl, Jscattering),
-                            wrkDir + 'tmp_%d/QUAOUT' % (lit_zerl))
+                            set.resultsDirectory + 'tmp_%d/QUAOUT_J%3.1f' %
+                            (lit_zerl, Jscattering), set.resultsDirectory +
+                            'tmp_%d/QUAOUT' % (lit_zerl))
                         #os.system('cp ' + wrkDir + 'tmp_%d/QUAOUT_J%3.1f ' %
                         #          (lit_zerl, Jscattering) + wrkDir +
                         #          'tmp_%d/QUAOUT' % (lit_zerl))
@@ -326,8 +328,12 @@ for nB in range(numScatteringBases):
                     #os.chdir(wrkDir)
                     #subprocess.call('rm  -rf %s' % tmps, shell=True)
                 #os.system('mv ' + wrkDir + 'tmp_*/*_S_* ' + set.respath)
-                for name in glob.glob(wrkDir + 'tmp_*/*_S_*'):
+                for name in glob.glob(set.resultsDirectory + 'tmp_*/*_S_*'):
+                    tmpf = set.resultsDirectory + name.split('/')[-1]
+                    if os.path.exists(tmpf):
+                        os.remove(tmpf)
                     shutil.move(name, set.resultsDirectory)
+
         if 'rhs-couple' in set.cal:
             os.chdir(set.resultsDirectory)
             rhs = []
@@ -336,10 +342,12 @@ for nB in range(numScatteringBases):
                 scatteringChannel = set.ScatteringChannels[nch]
                 In = float(scatteringChannel.split('^')[0])
                 JscatteringString = '%s' % str(In)[:3]
+                # as all bases must have the same (iso)spin structure,
+                # we retrieve this from BasNR-1
                 fragfile = [
-                    ln
-                    for ln in open(wrkDir + 'basis_struct/Sfrags_LIT_%s.dat' %
-                                   scatteringChannel)
+                    ln for ln in open(set.resultsDirectory +
+                                      'Sfrags_LIT_%s_BasNR-1.dat' %
+                                      (scatteringChannel))
                 ]
                 lfrags2 = [fr.split(' ')[1].strip() for fr in fragfile]
                 mLmJl, mLrange, mJlrange = non_zero_couplings(
@@ -406,17 +414,17 @@ for nB in range(numScatteringBases):
                     rhsInMInF = np.asfortranarray(rhsInMIn, dt)
                     rhsInMInF.tofile(fortranOut)
                     fortranOut.close()
-    os.chdir(set.backupDirectory)
-    subprocess.call('rm  -rf ' + wrkDir, shell=True)
+    #os.chdir(set.backupDirectory)
+    #subprocess.call('rm  -rf ' + wrkDir, shell=True)
     #os.system('find . -name \"T*OUT.*\" -print0 | xargs -0 rm')
-resdest = set.backupDirectory + 'latestresults'
-resdestbkp = resdest + '_bck_' + datetime.datetime.now().strftime(
-    '%d-%b-%Y--%H-%M-%S')
-if os.path.isdir(resdest) == True:
-    #os.system('mv %s %s' % (resdest, resdestbkp))
-    shutil.move(resdest, resdestbkp)
+#resdest = set.backupDirectory + 'latestresults'
+resdest = set.backupDirectory + 'latestresults_' + datetime.datetime.now(
+).strftime('%d-%b-%Y--%H-%M-%S')
 shutil.copytree(set.resultsDirectory[:-1], resdest)
+print('Results for MM processing written in:\n', resdest)
+#    shutil.move(resdest, resdestbkp)
+#shutil.copytree(set.resultsDirectory[:-1], resdest)
 #os.system('cp -r %s %s' % (set.respath[:-1], resdest))
-print('\n\nDONE! Results copied from\n%s\nto\n%s' %
-      (set.resultsDirectory[:-1], resdest))
+#print('\n\nDONE! Results copied from\n%s\nto\n%s' %
+#      (set.resultsDirectory[:-1], resdest))
 print('>>>>>>>>> end of A3_lit_M.py')

@@ -42,8 +42,8 @@ try:
     # for par_run.py operation
     ScatteringBasis = np.arange(int(argumentList[3]), int(argumentList[4]) + 1)
     NumberOfScatteringBasisFunctions = len(ScatteringBasis)
-    basisTypes = [set.boundstateChannel
-                  ] if int(argumentList[3]) < 0 else set.ScatteringChannels
+    basisTypes = [set.boundstateChannel] if int(
+        argumentList[3]) < 0 else set.ScatteringChannels
 except IndexError:
     # for manual operation
     NumberOfScatteringBasisFunctions = 1
@@ -61,7 +61,7 @@ if set.boundstateChannel in basisTypes:
 for scatteringChannel in set.ScatteringChannels:
     if scatteringChannel in basisTypes:
         finalStatePaths = [
-            set.litDirectory[:-1] + '-%d/' % nB for nB in ScatteringBasis
+            set.temporaryDirectory[:-1] + '-%d/' % nB for nB in ScatteringBasis
         ]
         for finalStatePath in finalStatePaths:
             if os.path.isdir(finalStatePath):
@@ -77,12 +77,12 @@ for scatteringChannel in set.ScatteringChannels:
 for basisType in basisTypes:
 
     # ini_dims = [BS(int),BS(rel),SCATT(int),SCATT(rel)]
-    initialDimensions = [4, 3, 6, 4]
+    initialDimensions = [4, 5, 5, 5]
 
     # lower and upper bounds for the grids from which the initial seed state is taken
     # 1-4: initial state, 1-2(jacobi1), 3-4(jacobi2)
     # 5-8: final   states,5-6(jacobi1), 7-8(jacobi2)
-    initialGridBounds = [0.2, 19.25, 0.001, 18.5, 0.01, 19.25, 0.001, 18.5]
+    initialGridBounds = [0.2, 19.25, 0.001, 18.5, 0.01, 9.25, 0.001, 1.5]
 
     jValue = float(basisType.split('^')[0][-3:])
     jString = '%s' % str(jValue)[:3]
@@ -132,7 +132,7 @@ for basisType in basisTypes:
     tritonBindingEnergy = 8.482
     he3BindingEnergy = 7.72
     # get the initial, random basis seed to yield thresholds close to the results in a complete basis
-    channelThreshold = -5.0 if basisType == set.boundstateChannel else -0.2
+    channelThreshold = -3.0 if basisType == set.boundstateChannel else -0.05
     CgfCycles = 1
     # nRaces := |i|
     nRaces = 1 if basisType == set.boundstateChannel else 1
@@ -817,18 +817,28 @@ for basisType in basisTypes:
                optCond, groundstateEnergy, optLove))
 
         # Output on tape; further processing via A3...py
-        suf = 'ref' if basisType == set.boundstateChannel else 'fin'
+        suf = 'ref' if basisType == set.boundstateChannel else 'fin-%d' % int(
+            basisNo + 1)
 
         lfrags = np.array(initialCiv[0])[:, 1].tolist()
         sfrags = np.array(initialCiv[0])[:, 0].tolist()
-        n3_inlu(8, fn=basisPath + 'INLU_%s' % suf, fr=lfrags, indep=-1)
-        n3_inlu(8, fn=basisPath + 'INLUCN_%s' % suf, fr=lfrags, indep=-1)
-        n3_inob(sfrags, 8, fn=basisPath + 'INOB_%s' % suf, indep=-1)
-        n3_inob(sfrags, 15, fn=basisPath + 'DRINOB_%s' % suf, indep=-1)
+        n3_inlu(8,
+                fn=set.resultsDirectory + 'INLU_%s' % suf,
+                fr=lfrags,
+                indep=-1)
+        n3_inlu(8,
+                fn=set.resultsDirectory + 'INLUCN_%s' % suf,
+                fr=lfrags,
+                indep=-1)
+        n3_inob(sfrags, 8, fn=set.resultsDirectory + 'INOB_%s' % suf, indep=-1)
+        n3_inob(sfrags,
+                15,
+                fn=set.resultsDirectory + 'DRINOB_%s' % suf,
+                indep=-1)
 
-        shutil.copy('INQUA_M', basisPath + 'INQUA_V18_%s' % suf)
-        shutil.copy('INEN', basisPath + 'INEN_%s' % suf)
-        shutil.copy('INSAM', basisPath)
+        shutil.copy('INQUA_M', set.resultsDirectory + 'INQUA_V18_%s' % suf)
+        shutil.copy('INEN', set.resultsDirectory + 'INEN_%s' % suf)
+        shutil.copy('INSAM', set.resultsDirectory)
 
         for filename in glob.glob('./inen_*'):
             os.remove(filename)
@@ -854,27 +864,40 @@ for basisType in basisTypes:
         #subprocess.call('rm -rf TQUAOUT.*', shell=True)
         #subprocess.call('rm -rf TDQUAOUT.*', shell=True)
 
-        fullBasfile, actBasfile = write_basis_on_tape(initialCiv,
-                                                      jValue,
-                                                      basisType,
-                                                      baspath=basisPath)
+        fullBasfile, actBasfile, actFragfile, intwFile, relwFile = write_basis_on_tape(
+            initialCiv, jValue, basisType, baspath=basisPath)
 
         if basisType != set.boundstateChannel:
             AbasOutStr = set.resultsDirectory + 'Ssigbasv3heLIT_%s_BasNR-%d.dat' % (
                 basisType, ScatteringBasis[basisNo])
             FbasOutStr = set.resultsDirectory + 'SLITbas_full_%s_BasNR-%d.dat' % (
                 basisType, ScatteringBasis[basisNo])
+            FfragsOutStr = set.resultsDirectory + 'Sfrags_LIT_%s_BasNR-%d.dat' % (
+                basisType, ScatteringBasis[basisNo])
+            intwOutStr = set.resultsDirectory + 'Sintw3heLIT_%s_BasNR-%d.dat' % (
+                basisType, ScatteringBasis[basisNo])
+            relwOutStr = set.resultsDirectory + 'Srelw3heLIT_%s_BasNR-%d.dat' % (
+                basisType, ScatteringBasis[basisNo])
+
             shutil.copy(fullBasfile, FbasOutStr)
             shutil.copy(actBasfile, AbasOutStr)
-            #subprocess.call('cp %s %s' % (fullBasfile, FbasOutStr), shell=True)
-            #subprocess.call('cp %s %s' % (actBasfile, AbasOutStr), shell=True)
+            shutil.copy(actFragfile, FfragsOutStr)
+            shutil.copy(intwFile, intwOutStr)
+            shutil.copy(relwFile, relwOutStr)
         else:
             AbasOutStr = set.resultsDirectory + 'Ssigbasv3heLIT_%s.dat' % basisType
             FbasOutStr = set.resultsDirectory + 'SLITbas_full_%s.dat' % basisType
+            FfragsOutStr = set.resultsDirectory + 'Sfrags_LIT_%s.dat' % basisType
+            intwOutStr = set.resultsDirectory + 'Sintw3heLIT_%s.dat' % (
+                basisType)
+            relwOutStr = set.resultsDirectory + 'Srelw3heLIT_%s.dat' % (
+                basisType)
+
             shutil.copy(fullBasfile, FbasOutStr)
             shutil.copy(actBasfile, AbasOutStr)
-            #subprocess.call('cp %s %s' % (fullBasfile, FbasOutStr), shell=True)
-            #subprocess.call('cp %s %s' % (actBasfile, AbasOutStr), shell=True)
+            shutil.copy(actFragfile, FfragsOutStr)
+            shutil.copy(intwFile, intwOutStr)
+            shutil.copy(relwFile, relwOutStr)
 
         matoutstr = '%smat_%s' % (
             set.resultsDirectory,
@@ -886,13 +909,12 @@ for basisType in basisTypes:
         print(
             'channel %s: Basis structure, Norm, and Hamiltonian written into %s'
             % (basisType, set.resultsDirectory + 'mat_' + basisType))
-        #probably need to see what is going on here
-        ##################################################
-        srcDir = set.litDirectory[:-1]  # deletinge trailing '/'
-        os.system('rsync -r -u ' + srcDir + ' ' + set.backupDirectory)
-        if basisType != set.boundstateChannel:
-            os.system('rsync -r -u ' + workDir[:-1] + ' ' +
-                      set.backupDirectory)
+
+        os.system('rsync -r -u ' + set.resultsDirectory + ' ' +
+                  set.backupDirectory)
+        #if basisType != set.boundstateChannel:
+        #    os.system('rsync -r -u ' + workDir[:-1] + ' ' +
+        #              set.backupDirectory)
         # for the bound-state/initial-state channel, consider only one basis set
         if basisType == set.boundstateChannel:
             break

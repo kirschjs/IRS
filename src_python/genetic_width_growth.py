@@ -1,13 +1,14 @@
 import numpy as np
-import struct 
+import struct
 import copy
 from settings import *
 
 
 def loveliness(groundstateEnergy, conditionNumber, HeigenvaluesbelowX,
                minimalConditionnumber):
-    return HeigenvaluesbelowX**2 * np.abs(
-        groundstateEnergy)**4 / np.abs(np.log(conditionNumber))**1
+    return HeigenvaluesbelowX**2 * np.abs(groundstateEnergy)**4 / np.abs(
+        np.log(conditionNumber))**1
+
 
 def basQ(normSpectrum,
          hamiltonianSpectrum,
@@ -17,12 +18,16 @@ def basQ(normSpectrum,
         [bvv for bvv in hamiltonianSpectrum if bvv < denseEnergyInterval[1]])
     gsEnergy = hamiltonianSpectrum[-1]
     basCond = np.min(np.abs(normSpectrum)) / np.max(np.abs(normSpectrum))
-    attractiveness = loveliness(gsEnergy, basCond, numberOfSignificantEV, minCond)
+    attractiveness = loveliness(gsEnergy, basCond, numberOfSignificantEV,
+                                minCond)
     return attractiveness, basCond
+
 
 def breed_offspring(iws, rws, parentBVs=[], chpa=[1, 1]):
     numberOfBV = len(sum(sum(rws, []), []))
-    cand = np.random.choice(np.arange(1, 1 + numberOfBV), (1,2)).tolist()[0] if parentBVs == [] else parentBVs
+    cand = np.random.choice(np.arange(1, 1 + numberOfBV),
+                            (1,
+                             2)).tolist()[0] if parentBVs == [] else parentBVs
     cf = []
     for bv in cand:
         ws = 0
@@ -38,7 +43,7 @@ def breed_offspring(iws, rws, parentBVs=[], chpa=[1, 1]):
         chint = intertwining(mw[0], fw[0], mutation_rate=0.1)
         chrel = intertwining(mw[1], fw[1], mutation_rate=0.1)
     except:
-        print ("intertwining failed",file=sys.stderr)
+        print("intertwining failed", file=sys.stderr)
         print(cand[0])
         print(cand[1])
         exit(-1)
@@ -52,6 +57,7 @@ def breed_offspring(iws, rws, parentBVs=[], chpa=[1, 1]):
     ]
     return [c0, c1]
 
+
 def retr_widths(bvNbr, iws, rws):
     assert bvNbr <= len(sum(sum(rws, []), []))
     ws = 0
@@ -62,12 +68,14 @@ def retr_widths(bvNbr, iws, rws):
                 if ws == bvNbr:
                     return [iws[cfg][nbv], rws[cfg][nbv][rw]]
 
+
 def flatten_basis(basis):
     fb = []
     for bv in basis:
         for rw in bv[1]:
             fb.append([bv[0], [rw]])
     return fb
+
 
 def rectify_basis(basis):
     rectbas = []
@@ -79,6 +87,7 @@ def rectify_basis(basis):
     idx = np.array([b[0] for b in rectbas]).argsort()[::-1]
     rectbas = [[bb[0], np.sort(bb[1]).tolist()] for bb in rectbas]
     return rectbas
+
 
 def condense_basis(inputBasis, MaxBVsPERcfg=12):
     unisA = []
@@ -94,17 +103,19 @@ def condense_basis(inputBasis, MaxBVsPERcfg=12):
         D0s[1].append([])
         D0s[2].append([])
         for basisVector in range(len(inputBasis[3])):
-            cfgOFbv = sum([bound < inputBasis[3][basisVector][0] for bound in bounds])
+            cfgOFbv = sum(
+                [bound < inputBasis[3][basisVector][0] for bound in bounds])
             if inputBasis[0][cfgOFbv] == spinCFG:
                 try:
                     D0s[1][-1].append(
-                        sum(inputBasis[1], [])[inputBasis[3][basisVector][0] - 1])
+                        sum(inputBasis[1],
+                            [])[inputBasis[3][basisVector][0] - 1])
                     D0s[2][-1].append(
                         np.array(
                             sum(inputBasis[2],
                                 [])[inputBasis[3][basisVector][0] -
-                                    1])[np.array(inputBasis[3][basisVector][1]) -
-                                        1].tolist())
+                                    1])[np.array(inputBasis[3][basisVector][1])
+                                        - 1].tolist())
                 except:
                     print('\n\n', unisA, bounds, basisVector, spinCFG, cfgOFbv)
                     print(D0s)
@@ -161,6 +172,7 @@ def condense_basis(inputBasis, MaxBVsPERcfg=12):
                 np.array(range(1, 1 + len(D0ss[2][cfg][nbvc - 1]))).tolist()
             ]]
     return D0ss
+
 
 def write_basis_on_tape(basis, jay, btype, baspath=''):
     jaystr = '%s' % str(jay)[:3]
@@ -236,7 +248,8 @@ def write_basis_on_tape(basis, jay, btype, baspath=''):
         f.seek(NEWLINE_SIZE_IN_BYTES, 2)
         f.truncate()
     f.close()
-    return path_bas_int_rel_pairs, path_indi
+    return path_bas_int_rel_pairs, path_indi, path_frag_stru, path_intw, path_relw
+
 
 def basisDim(bas=[]):
     dim = 0
@@ -244,6 +257,7 @@ def basisDim(bas=[]):
         for rw in bv[1]:
             dim += 1
     return dim
+
 
 def select_random_basis(basis_set, target_dim):
     assert target_dim < basisDim(basis_set)
@@ -260,20 +274,27 @@ def select_random_basis(basis_set, target_dim):
     basv = (np.array(tmp)[np.array([ve[0] for ve in tmp]).argsort()]).tolist()
     rndBas = rectify_basis(basv)
     return rndBas
+
+
 #https://stackoverflow.com/questions/53538504/float-to-binary-and-binary-to-float-in-python
+
 
 def float_to_bin(num):
     return format(struct.unpack('!I', struct.pack('!f', num))[0], '032b')
 
+
 def bin_to_float(binary):
     return struct.unpack('!f', struct.pack('!I', int(binary, 2)))[0]
+
 
 def intertwining(p1, p2, mutation_rate=0.0, wMin=0.001, wMax=20., dbg=False):
     Bp1 = float_to_bin(p1)
     Bp2 = float_to_bin(p2)
     assert len(Bp1) == len(Bp2)
     assert mutation_rate < 1
-    mutationMask = np.random.choice(2,p=[1 - mutation_rate, mutation_rate],size=len(Bp1))
+    mutationMask = np.random.choice(2,
+                                    p=[1 - mutation_rate, mutation_rate],
+                                    size=len(Bp1))
     pivot = np.random.randint(0, len(Bp1))
     Bchild1 = Bp1[:pivot] + Bp2[pivot:]
     Bchild2 = Bp2[:pivot] + Bp1[pivot:]
@@ -293,6 +314,7 @@ def intertwining(p1, p2, mutation_rate=0.0, wMin=0.001, wMax=20., dbg=False):
         print('children (binary)       :', Bchild1, ';;', Bchild2)
         print('children (decimal)      :%12.4f%12.4f' % (Fc1, Fc2))
     return Fc1, Fc2
+
 
 def essentialize_basis(basis, MaxBVsPERcfg=4):
     # basis = [[cfg1L,cfg1S],...,[cfgNL,cfgNS]],

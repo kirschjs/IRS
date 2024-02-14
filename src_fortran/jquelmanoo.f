@@ -200,8 +200,8 @@ c
 390   DO 24  L = 1,LM                                                   
 c
       READ(INPUT,1003)  (CPAR(N,L,K),N=1,M)                            
-c
       READ(INPUT,1003)  (RPAR(L,N,K),N=1,KM)
+c
 c
    24 CONTINUE                          
 c 
@@ -211,7 +211,7 @@ c
       NUM(3,N,K)=IVEK(K)+N                                              
       READ(INPUT,'(6E12.4)') (COF(L,N,K),L=1,LM)                              
 
- 1003 FORMAT(6E12.4)                                                    
+ 1003 FORMAT(30E12.4)                                                    
  1004 FORMAT(/I3,25H TER SATZ INNERER WEITEN  /8F12.6)           
  1005 FORMAT(/22H SATZ RADIALPARAMETER   /3(8F12.6/))
  1050 FORMAT(//15H DEFINITION DER,I3,22H TEN BASISFUNKTION IST/         
