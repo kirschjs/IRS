@@ -1,6 +1,6 @@
 import os
 import os.path
-import shutil
+import shutil, datetime
 #import numpy as np
 
 #import sympy as sy
@@ -24,33 +24,39 @@ class A3settings:
 
         self.backupDirectory = os.getenv(
             'HOME'
-        ) + '/scratch/compton_IRS/' + uniqueDirectory + '/'  # where results are stored at the end
-        if not os.path.exists(self.backupDirectory):
-            os.makedirs(self.backupDirectory, exist_ok=True)
+        ) + '/scratch/compton_IRS/' + uniqueDirectory  # where results are stored at the end
+        if os.path.exists(self.backupDirectory + '/results/'):
+            print(
+                "Use existing results folder/Create backup and write in empty folder: (press Enter)/(type B)?"
+            )
+            ctn = input()
+            if ctn == 'B':
+                # safe exisitng results folder before creating a new one
+                resdest = self.backupDirectory + '/latestresults_' + datetime.datetime.now(
+                ).strftime('%d-%b-%Y--%H-%M-%S')
+                shutil.move(self.backupDirectory + '/results/', resdest)
+                print('existing results moved to:\n', resdest)
+                self.backupDirectory += '/results/'
+                os.makedirs(self.backupDirectory, exist_ok=True)
+            else:
+                self.backupDirectory += '/results/'
 
         self.temporaryDirectory = '/tmp/' + uniqueDirectory + '/'
 
         if shouldExist:
-            if ((not os.path.exists(self.temporaryDirectory)) &
-                (not os.path.exists(self.backupDirectory))):
-                print(" Neither uniqueDirectory:\n$",
+            if not os.path.exists(self.temporaryDirectory):
+                print("uniqueDirectory:\n$",
                       self.temporaryDirectory,
-                      "\n nor its backupDirectory:\n$",
-                      self.backupDirectory,
-                      "\n do exist.",
+                      "\n does not exist, but should.",
                       file=sys.stderr)
                 exit(-1)
         else:
             print(self.temporaryDirectory)
             if os.path.exists(self.temporaryDirectory):
-                print("uniqueDirectory ",
-                      uniqueDirectory,
-                      " already exists",
-                      file=sys.stderr)
-                ctn = input('(D)elete and continue or (P)roceed?')
-                if ctn == 'D':
-                    shutil.rmtree(self.temporaryDirectory)
-                    os.makedirs(self.temporaryDirectory)
+                shutil.rmtree(self.temporaryDirectory)
+                os.makedirs(self.temporaryDirectory)
+                print('Deleted the existing and created a new tmp dir: ',
+                      self.temporaryDirectory)
             else:
                 os.makedirs(self.temporaryDirectory)
                 print('Created tmp dir: ', self.temporaryDirectory)

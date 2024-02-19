@@ -24,11 +24,11 @@ MPIProcesses = sys.argv[2]
 set = A3settings(uniqueDirectory=uniqueDirectory,
                  shouldExist=True,
                  mpiProcesses=MPIProcesses)
-#import PSI_parallel_M
+
+set.resultsDirectory = set.backupDirectory
+
 RHSofBV = {}
 RHSofmJ = {}
-#respath = bkpdir + suffi + 'results/'
-#helionpath = bkpdir + suffi + 'he3/'
 arglist = sys.argv
 try:
     # with arguments: calculate overlap for bases arg1 - arg2
@@ -346,8 +346,8 @@ for nB in range(numScatteringBases):
                 # we retrieve this from BasNR-1
                 fragfile = [
                     ln for ln in open(set.resultsDirectory +
-                                      'Sfrags_LIT_%s_BasNR-1.dat' %
-                                      (scatteringChannel))
+                                      'Sfrags_LIT_%s_BasNR-%d.dat' %
+                                      (scatteringChannel, int(nB + 1)))
                 ]
                 lfrags2 = [fr.split(' ')[1].strip() for fr in fragfile]
                 mLmJl, mLrange, mJlrange = non_zero_couplings(
@@ -414,17 +414,5 @@ for nB in range(numScatteringBases):
                     rhsInMInF = np.asfortranarray(rhsInMIn, dt)
                     rhsInMInF.tofile(fortranOut)
                     fortranOut.close()
-    #os.chdir(set.backupDirectory)
-    #subprocess.call('rm  -rf ' + wrkDir, shell=True)
-    #os.system('find . -name \"T*OUT.*\" -print0 | xargs -0 rm')
-#resdest = set.backupDirectory + 'latestresults'
-resdest = set.backupDirectory + 'latestresults_' + datetime.datetime.now(
-).strftime('%d-%b-%Y--%H-%M-%S')
-shutil.copytree(set.resultsDirectory[:-1], resdest)
-print('Results for MM processing written in:\n', resdest)
-#    shutil.move(resdest, resdestbkp)
-#shutil.copytree(set.resultsDirectory[:-1], resdest)
-#os.system('cp -r %s %s' % (set.respath[:-1], resdest))
-#print('\n\nDONE! Results copied from\n%s\nto\n%s' %
-#      (set.resultsDirectory[:-1], resdest))
+
 print('>>>>>>>>> end of A3_lit_M.py')

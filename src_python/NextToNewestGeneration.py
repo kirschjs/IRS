@@ -31,7 +31,7 @@ with open(set.resultsDirectory + 'dtype.dat', 'w') as outputFile:
 
 # maximum number of attempts to furnish a random initial basis which
 # satisfies the defined minimal quality and stability criteria
-maxNoIterations = 2
+maxNoIterations = 7
 
 # call with arg1<0 : boundsate
 #           a b    : streubases from a to b
@@ -77,12 +77,12 @@ for scatteringChannel in set.ScatteringChannels:
 for basisType in basisTypes:
 
     # ini_dims = [BS(int),BS(rel),SCATT(int),SCATT(rel)]
-    initialDimensions = [4, 5, 5, 5]
+    initialDimensions = [5, 6, 5, 6]
 
     # lower and upper bounds for the grids from which the initial seed state is taken
     # 1-4: initial state, 1-2(jacobi1), 3-4(jacobi2)
     # 5-8: final   states,5-6(jacobi1), 7-8(jacobi2)
-    initialGridBounds = [0.2, 19.25, 0.001, 18.5, 0.01, 9.25, 0.001, 1.5]
+    initialGridBounds = [0.2, 19.25, 0.001, 18.5, 0.01, 4.25, 0.0001, 2.5]
 
     jValue = float(basisType.split('^')[0][-3:])
     jString = '%s' % str(jValue)[:3]
@@ -121,18 +121,18 @@ for basisType in basisTypes:
     purgeStr = ['Condition number', 'pulchritude',
                 'Ground-state energy'][pwpurge]
     # evolution criteria
-    minimalConditionNumber = 1e-14
+    minimalConditionNumber = 1e-18
     targetEVinterval = [-10., 180.0]
     removalGainFactor = 1.05
     maxOnPurge = 113
     maxOnTrail = 43
-    muta_initial = 0.075
+    muta_initial = 0.01
 
     deuteronBindingEnergy = 2.224
     tritonBindingEnergy = 8.482
     he3BindingEnergy = 7.72
     # get the initial, random basis seed to yield thresholds close to the results in a complete basis
-    channelThreshold = -3.0 if basisType == set.boundstateChannel else -0.05
+    channelThreshold = -3.0 if basisType == set.boundstateChannel else 0.0
     CgfCycles = 1
     # nRaces := |i|
     nRaces = 1 if basisType == set.boundstateChannel else 1
@@ -144,6 +144,7 @@ for basisType in basisTypes:
             basisNo]
         basisPath = workDir + 'basis_struct/'
         os.chdir(workDir)
+
         shutil.copy(set.nnPotFile, './')
         shutil.copy(set.nnnPotFile, './')
         groundstateEnergy = 42.0  # why 42.0?
@@ -904,17 +905,16 @@ for basisType in basisTypes:
             basisType + '_BasNR-%d' % ScatteringBasis[basisNo]
         ) if basisType != set.boundstateChannel else '%smat_%s' % (
             set.resultsDirectory, basisType)
+
         shutil.copy('MATOUTB', matoutstr)
-        #subprocess.call('cp MATOUTB %s' % matoutstr, shell=True)
+
         print(
             'channel %s: Basis structure, Norm, and Hamiltonian written into %s'
             % (basisType, set.resultsDirectory + 'mat_' + basisType))
 
         os.system('rsync -r -u ' + set.resultsDirectory + ' ' +
                   set.backupDirectory)
-        #if basisType != set.boundstateChannel:
-        #    os.system('rsync -r -u ' + workDir[:-1] + ' ' +
-        #              set.backupDirectory)
+
         # for the bound-state/initial-state channel, consider only one basis set
         if basisType == set.boundstateChannel:
             break
