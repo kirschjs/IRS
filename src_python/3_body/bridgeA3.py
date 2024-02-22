@@ -24,22 +24,25 @@ class A3settings:
 
         self.backupDirectory = os.getenv(
             'HOME'
-        ) + '/scratch/compton_IRS/' + uniqueDirectory  # where results are stored at the end
-        if os.path.exists(self.backupDirectory + '/results/'):
+        ) + '/scratch/compton_IRS/' + uniqueDirectory + '/'  # where results are stored at the end
+        if os.path.exists(self.backupDirectory + '/results'):
             print(
                 "Use existing results folder/Create backup and write in empty folder: (press Enter)/(type B)?"
             )
             ctn = input()
             if ctn == 'B':
                 # safe exisitng results folder before creating a new one
-                resdest = self.backupDirectory + '/latestresults_' + datetime.datetime.now(
+                resdest = self.backupDirectory + 'latestresults_' + datetime.datetime.now(
                 ).strftime('%d-%b-%Y--%H-%M-%S')
-                shutil.move(self.backupDirectory + '/results/', resdest)
+                shutil.move(self.backupDirectory + 'results/', resdest)
                 print('existing results moved to:\n', resdest)
-                self.backupDirectory += '/results/'
+                self.backupDirectory += 'results/'
                 os.makedirs(self.backupDirectory, exist_ok=True)
             else:
-                self.backupDirectory += '/results/'
+                self.backupDirectory += 'results/'
+        else:
+            self.backupDirectory += 'results/'
+            os.makedirs(self.backupDirectory, exist_ok=True)
 
         self.temporaryDirectory = '/tmp/' + uniqueDirectory + '/'
 
@@ -88,8 +91,8 @@ class A3settings:
 
     jobDirectory = os.getcwd()
 
-    bindingBinDir = jobDirectory + '/../src_fortran/'
-    litBinDir = jobDirectory + '/../src_fortran/'
+    bindingBinDir = jobDirectory + '/../../src_fortran/'
+    litBinDir = jobDirectory + '/../../src_fortran/'
 
     # tnni=10 for NN; tnni=11 for  NN and NNN
     tnni = 11
@@ -97,9 +100,9 @@ class A3settings:
     parallel = -1  # use -1 in some of the input files: horrible!
 
     nnPotLabel = 'AV18'  #'nn_pot'  #pot_nn_06'  #'BONN'  #AV4.14'
-    nnPotFile = jobDirectory + '/../data/%s' % nnPotLabel
+    nnPotFile = jobDirectory + '/../../data/%s' % nnPotLabel
     nnnPotLabel = 'urbana9_AK_neu'  #'nnn_pot'  #'pot_nnn_06'  #
-    nnnPotFile = jobDirectory + '/../data/%s' % nnnPotLabel
+    nnnPotFile = jobDirectory + '/../../data/%s' % nnnPotLabel
 
     # convention: bound-state-expanding BVs: (1-8), i.e., 8 states per rw set => nzf0*8
     channels = {

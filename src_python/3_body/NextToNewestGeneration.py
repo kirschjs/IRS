@@ -82,7 +82,7 @@ for basisType in basisTypes:
     # lower and upper bounds for the grids from which the initial seed state is taken
     # 1-4: initial state, 1-2(jacobi1), 3-4(jacobi2)
     # 5-8: final   states,5-6(jacobi1), 7-8(jacobi2)
-    initialGridBounds = [0.2, 19.25, 0.001, 18.5, 0.01, 4.25, 0.0001, 2.5]
+    initialGridBounds = [0.2, 12.25, 0.001, 12.5, 0.01, 2.25, 0.0001, 2.5]
 
     jValue = float(basisType.split('^')[0][-3:])
     jString = '%s' % str(jValue)[:3]

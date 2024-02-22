@@ -353,6 +353,7 @@ C       READ LUELMA ELEMENTE
       DO 540 N=1,NNN                                                    
       READ (NBAND5) NUML,NUMR,II1,II2,((DM(K,L),K=1,II1),L=1,II2)
       IF(KOM(MKC,MFL,MFR).LE.0) GOTO 540
+      stop 540
       WRITE (NBAND1) NUML,NUMR,II1,II2,((DM(K,L),K=1,II1),L=1,II2)
   540 CONTINUE                                                          
       IF(KOM(MKC,MFL,MFR).GT.0) GOTO 42
@@ -483,6 +484,10 @@ C      LOOP INNERE WEITEN LINKS
    44 CONTINUE                                                          
 C       LOOP OBELMA
   900 CONTINUE                                                          
+C      if(mkc.eq.10) then
+C      write(6,*) 'MKC=',MKC,' DM(1,1)=',((DM(K,L),K=1,5),L=1,5)
+Cc      stop 12
+C      endif
       DO 480 M=1,IRHO
       NUML=NUM(3,M,MFL)
       DO 481 N=1,JRHO
@@ -493,14 +498,21 @@ c      IF(NUML.LT.NUMR) GOTO 481
       N1=(N-1)*JK1+1                                                    
       N2=N*JK1                                                          
       II1 = 1                                                           
-      A = 0.                                                            
+      A = 0.    
       DO 510 L=N1,N2 
       DO 510 K=M1,M2
- 510  A = A + ABS(DM(K,L))
+C      if(mkc.eq.10) then
+C      write(6,*) 'MKC,k,l=',MKC,k,l,' DM=',DM(K,L)
+CC      stop 12
+C      endif                                                                
+ 510  A = A + ABS(DM(K,L))                                                        
 c      IF(A.GT.0.) GOTO 512
 c      WRITE (NBAND1) NUML,NUMR,II1,II1,A,A                              
 c      GOTO 481                                                          
 512   WRITE(NBAND1) NUML,NUMR,IK1,JK1,((DM(K,L),K=M1,M2),L=N1,N2)
+C      if(mkc.eq.10) then
+C      WRITE(nout,*) MKC,NUML,NUMR,IK1,JK1,((DM(K,L),K=M1,M2),L=N1,N2)
+C      endif
   481 CONTINUE                                                          
 
 1021  FORMAT(1X,10E12.5)
@@ -663,7 +675,6 @@ C
       
       
       INZ1=(NZAV*(NZAV+1))/2
-      
       S = 0.
       IF(NREB.EQ.0) GOTO 82
       DO 84   N = 1,NZAV
@@ -763,12 +774,15 @@ C
       I0 = NDIM * LPARR + KPARR                                         
       DO 100 M=1,NSH                                                    
       I2 = NSH2(M)                                                      
-      C = SH(M) * WERTT(I2)                                             
+      C = SH(M) * WERTT(I2)
       IF (C.EQ.0.) GOTO 100                                             
       I1 = NSH1(M) + I0                                                 
       DMM(I1) = DMM(I1) + C
   100 CONTINUE                                                          
-  170 CONTINUE                                                          
+  170 CONTINUE
+C      if(mkc.eq.10) then
+C      write(6,*) 'MKC=',MKC,' i0=',i0
+C      endif                                                          
       RETURN                                                            
       END                                                               
       SUBROUTINE HAUPT                                                  

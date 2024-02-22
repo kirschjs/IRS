@@ -217,9 +217,8 @@ C        NTI = 1 if 1<=MKC<=11
       READ (NBAND) NUML,NUMR,IK1,JK1,
      *       ((DNN(K,L),K=1,IK1),L=1,JK1)
 C     * (IDUMMY,DNN(K,L,J),J=1,LL1),L=1,JK1),K=1,IK1)     
-C      write(6,*)'MKC=',MKC
-C      write(6,'(A13,5I4)') '(from qual): ',NUML,NUMR,IK1,JK1
-C      write(6,'(2E24.8)') ((DNN(K,L),K=1,IK1),L=1,JK1)
+      write(6,'(A13,5I4)') '(from qual): ',NUML,NUMR,IK1,JK1
+      write(6,'(2E24.8)') ((DNN(K,L),K=1,IK1),L=1,JK1)
 
           NZREL(MFL) = IK1
           NZREL(MFR) = JK1
@@ -279,9 +278,7 @@ C     *  Int(MR*0.5),Int(LBL2*0.5),Int(LBR2*0.5)
 C     NORM
       IF (ML.NE.MR) THEN
         WRITE (6,1200) MKC, ML, MR
-C        write(nout,*) 'this must not be zero!',
-C     *   (-1)**(LBR+2*MR+ML-JWSR)*F6J(LBR2,MR,JWSR,ML,LBL2,0)
-C        STOP 13
+c        STOP 13
       ENDIF
 
 C     HIER WIRD  DER FUER DIE NORM FALSCHE CLEBSCH-GORDAN-KOEFFIZIENT
@@ -303,13 +300,12 @@ C     *           F1,F,FK1new,GEFAK(MKC),FPAR,MKC
       if(MKC.ne.1) then        
       DNN(K,L) =     F1*DNN(K,L)
       ELSE
-c      write(nout,*)'nf=',F1
       DNN(K,L) = 0.5*F1*DNN(K,L)
       endif
 C     AUSDRUCK DER OP-WERTE UND DER K-POTENZ LAMBDA
 c      write(nout,'(A13,F8.4,3I3)')'(ecce) DNN = ',DNN(K,L,JJ),K,L,JJ
       IF(IGAK.gt.-1) then
-      WRITE(6,'(A42,7I3,3F24.8)') 
+      WRITE(6,'(A42,7I3,3F12.8)') 
      *         'MFL,MFR,MKC,NBVL,NBVR,K,L,F1,DNN: ',
      *           MFL,MFR,MKC,NBVL,NBVR,K,L,
      *           F1,DNN(K,L)
@@ -343,14 +339,11 @@ c      write(nout,'(A20,2I5)') '(ecce): row0, col0: ',NROWOz,NCOLOz
       NCOL = NCOLOv
       DO 468 L=1,JK1
       if(ABS(DN(K,L)).lt.1E-20) DN(K,L)=0
-c additional check for the norm: any n-element < threshold is =0
-C      if(DN(L,L).lt.1E-20) DN(L,L)=ABS(DN(L,L))
-C      if(DN(K,K).lt.1E-20) DN(K,K)=ABS(DN(K,K))
       DM(NROW,NCOL,MKC) = DN(K,L)
 c      if(MKC.eq.10) then
-C      write(6,'(2I2,A11,I2,A1,I2,A1,I2,A4,2E18.8)')K,L,
-C     *   '(ecce): DM(',NROW,',',NCOL,',',MKC,') = ',
-C     *   DN(K,L),DN(L,K)
+      write(6,'(2I2,A11,I2,A1,I2,A1,I2,A4,2E18.8)')K,L,
+     *   '(ecce): DM(',NROW,',',NCOL,',',MKC,') = ',
+     *   DN(K,L),DN(L,K)
 c      endif
       NCOL = NCOL + 1
   468 CONTINUE
@@ -370,33 +363,19 @@ C     ENDE LOOP ZERLEGUNGEN RECHTS
 C     ENDE LOOP ZERLEGUNGEN LINKS
   140 CONTINUE
 
-C      write(nout,*) 'norm_diag -start',NCOL,NROW    
-C      write(nout,*) (DM(L,L,1),L=1,NROW-1 )
-C      write(nout,*) 'norm_diag -end'
-
-C      if(abs(DM(K,L,10)+DM(K,L,11)).gt.1E-20) then
       WRITE(NBAND2)
+C test version
      *   (( (DM(K,L,10)+DM(K,L,11))/SQRT(DM(L,L,1)*DM(K,K,1))
      *   ,L=1,NCOL-1 ),K=1,NROW-1 )
-C      else
-C      WRITE(NBAND2) (((DM(K,L,10)+DM(K,L,11)),
-C     * L=1,NCOL-1),K=1,NROW-1)
-C      endif
-
+c     * ((DM(K,L,1)/SQRT(DM(L,L,1)*DM(K,K,1)),L=1,NCOL-1 ),K=1,NROW-1 )
       write(NBAND2) ((DM(K,L,1),L=1,NCOL-1 ),K=1,NROW-1 )
-
-C      if(DM(K,L,10).ne.0) then
-C      write(nout,*)'non-zero MEs'
-C      WRITE(nout,*)
-C     *   (( (DM(K,L,10)+DM(K,L,11))/SQRT(DM(L,L,1)*DM(K,K,1))
-C     *   ,L=1,NCOL-1 ),K=1,NROW-1 )
-C      else
-C      write(nout,*)'zero MEs'
-C      WRITE(nout,*)
-C     *   (( (DM(K,L,10)+DM(K,L,11))
-C     *   ,L=1,NCOL-1 ),K=1,NROW-1 )
-C      endif
-
+c      write(NBAND2) ((DM(K,L,1)/SQRT(DM(L,L,1)*DM(K,K,1)),
+c     *       L=1,NCOL-1 ),K=1,NROW-1 )      
+c v 2/1/24
+C     * (( (DM(K,L,10)+DM(K,L,11))/SQRT(DM(L,L,1)*DM(K,K,1))
+C     *   ,L=1,NCOL-1 ),K=1,NROW-1 ),
+C     * ((DM(K,L,1),L=1,NCOL-1 ),K=1,NROW-1 ) 
+      write(nout,*) ((DM(K,L,1),L=1,NCOL-1 ),K=1,NROW-1 )
 c
       DO 143 K=1,NROW-1
       DO 143 L=1,NCOL-1

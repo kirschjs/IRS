@@ -8,6 +8,7 @@ from genetic_width_growth import *
 from settings import *
 from three_particle_functions import *
 
+
 def blunt_ev(set,
              cfgs,
              intws,
@@ -48,17 +49,26 @@ def blunt_ev(set,
                            infile='INQUA_M_0',
                            outFileNm='INQUA_M',
                            single_path=singleFilePath)
-    n3_inen_bdg(basis, angMomentum, costring, fileName='INEN', pari=0, nzop=PotOpCount, tni=potChoice)
+    n3_inen_bdg(basis,
+                angMomentum,
+                costring,
+                fileName='INEN',
+                pari=0,
+                nzop=PotOpCount,
+                tni=potChoice)
     if set.parallel == -1:
         testDiskUsage(set.temporaryDirectory, set.temporaryFree)
         subprocess.run([
             #mpiPath, '--oversubscribe', '-np',
-            mpiPath, '-np',
-            '%d' % NoProcessors, binaryPath + 'V18_PAR/mpi_quaf_v7'
+            mpiPath,
+            '-np',
+            '%d' % NoProcessors,
+            binaryPath + 'V18_PAR/mpi_quaf_v7'
         ])
         subprocess.run([binaryPath + 'V18_PAR/sammel'])
         #subprocess.call('rm -rf DMOUT.*', shell=True)
-        for filename in glob.glob("DMOUT.*"): os.remove(filename)
+        for filename in glob.glob("DMOUT.*"):
+            os.remove(filename)
     else:
         subprocess.run([binaryPath + 'QUAFL_M.exe'])
     if potChoice == 11:
@@ -68,7 +78,10 @@ def blunt_ev(set,
         n3_inob(sfrag, 15, fn='INOB', indep=set.parallel)
         #os.system(bin_path + 'DROBER.exe')
         run_external(binaryPath + 'DROBER.exe')
-        he3inquaBS(intwi=intws, relwi=relws, potf=NNNpotName, inquaout='INQUA_M_0')
+        he3inquaBS(intwi=intws,
+                   relwi=relws,
+                   potf=NNNpotName,
+                   inquaout='INQUA_M_0')
         parallel_mod_of_3inqua(lfrag,
                                sfrag,
                                infile='INQUA_M_0',
@@ -79,12 +92,15 @@ def blunt_ev(set,
             testDiskUsage(set.temporaryDirectory, set.temporaryFree)
             subprocess.run([
                 #mpiPath, '--oversubscribe', '-np',
-                mpiPath, '-np',
-                '%d' % NoProcessors, binaryPath + 'UIX_PAR/mpi_drqua_v7'
+                mpiPath,
+                '-np',
+                '%d' % NoProcessors,
+                binaryPath + 'UIX_PAR/mpi_drqua_v7'
             ])
             subprocess.run([binaryPath + 'UIX_PAR/SAMMEL-uix'])
             #subprocess.call('rm -rf DRDMOUT.*', shell=True)
-            for filename in glob.glob("DRMFOUT.*"): os.remove(filename)
+            for filename in glob.glob("DRMFOUT.*"):
+                os.remove(filename)
             subprocess.run([binaryPath + 'TDR2END_NORMAL.exe'])
             #               capture_output=True,
             #               text=True)
@@ -102,6 +118,7 @@ def blunt_ev(set,
     if workDir != '':
         os.chdir(base_path)
     return NormHam
+
 
 def smart_ev(matout, threshold=1e-7):
     dim = int(np.sqrt(len(matout) * 0.5))
@@ -135,6 +152,7 @@ def smart_ev(matout, threshold=1e-7):
     #print('(stable) Eigenbasisdim = %d(%d)' % (dimRed, dim))
     #return the ordered eigenvalues
     return ewGood, normCond
+
 
 def NormHamDiag(matout, threshold=1e-7):
     dim = int(np.sqrt(len(matout) * 0.5))
@@ -172,9 +190,12 @@ def NormHamDiag(matout, threshold=1e-7):
     #print('E_min/E_max = %12.4e   B(0) = %12.4e' % (condition, ewGood[-1]))
     return ewN, ewH
 
+
 def endmat(para, send_end):
-    [D0, jValue, costr, noPotentialOperators, tnni, intvl, bindingBinDir, minCond,
-     denseEVinterval] = para
+    [
+        D0, jValue, costr, noPotentialOperators, tnni, intvl, bindingBinDir,
+        minCond, denseEVinterval
+    ] = para
     child_id = ''.join(str(x) for x in np.array(para[5]))
     inputFile = 'inen_%s' % child_id
     outputFile = 'endout_%s' % child_id
@@ -191,7 +212,8 @@ def endmat(para, send_end):
                 pari=0,
                 nzop=noPotentialOperators,
                 tni=tnni)
-    cmdend = bindingBinDir + 'TDR2END_PYpoolnoo.exe %s %s %s' % (inputFile, outputFile, matoutFile)
+    cmdend = bindingBinDir + 'TDR2END_PYpoolnoo.exe %s %s %s' % (
+        inputFile, outputFile, matoutFile)
     #pend = subprocess.Popen(shlex.split(cmdend),
     #                        stdout=subprocess.PIPE,
     #                        stderr=subprocess.PIPE)
@@ -201,10 +223,13 @@ def endmat(para, send_end):
     try:
         NormHam = np.core.records.fromfile(matoutFile, formats='f8', offset=4)
         smartEV, basCond = smart_ev(NormHam, threshold=1e-7)
-        cntSignificantEV = len(
-            [bvv for bvv in smartEV if denseEVinterval[0] < bvv <denseEVinterval[1]])
+        cntSignificantEV = len([
+            bvv for bvv in smartEV
+            if denseEVinterval[0] < bvv < denseEVinterval[1]
+        ])
         gsEnergy = smartEV[-1]
-        attractiveness = loveliness(gsEnergy, basCond, cntSignificantEV, minCond)
+        attractiveness = loveliness(gsEnergy, basCond, cntSignificantEV,
+                                    minCond)
         #        dim = int(np.sqrt(len(NormHam) * 0.5))
         #
         #        # read Norm and Hamilton matrices
@@ -250,7 +275,7 @@ def endmat(para, send_end):
         os.remove(inputFile)
         os.remove(outputFile)
         os.remove(matoutFile)
-        send_end.send([basCond, attractiveness, gsEnergy, intvl,D0])
+        send_end.send([basCond, attractiveness, gsEnergy, intvl, D0])
     except:
         print('>>>>>>>>>>>> failure at ', matoutFile, file=sys.stderr)
         print('>>>>>>>>>>>> INPUT:', file=sys.stderr)
