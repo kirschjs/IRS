@@ -326,6 +326,7 @@ c     => after one operator has been calculated, the dimension counter is reset
       NR = MZG(MFR)
       IY=MOD(MKC-2,4)+2
       if(MKC.eq.1) IY = 1
+
 C     IY BESTIMMT DEN OBEROPERATOR ZU MKC
 C
       IF(NREG(IY).LE.0) GOTO 440
@@ -334,7 +335,7 @@ C
 82    CONTINUE
       IF(NTE(IY).LE.0 .OR. mkc.gt.5) GOTO 440
       DO 922   MTE = 1,NTE(IY)
-      READ(NBAND2)    NT1(MTE,IY),(LC(K,MTE,IY),K=1,NZT),
+      READ(NBAND2)   NT1(MTE,IY),(LC(K,MTE,IY),K=1,NZT),
      1  ((U(NFL,NFR,MTE,IY),NFL=  1,NL),NFR=1,NR)
 922   CONTINUE
 C
@@ -347,7 +348,7 @@ C       READ LUELMA ELEMENTE
       IF(MFL.NE.MFR)GOTO 97
       NNN= NZRHO1(MFL)*(NZRHO1(MFL)+1)/2                                
       GO TO 99                                                          
-97    NNN=NZRHO1(MFL)*NZRHO1(MFR)                                       
+97    NNN=NZRHO1(MFL)*NZRHO1(MFR)
    99 CONTINUE                                                          
       IF(LREG(MKC)*NNN.LE.0) GOTO 42
       DO 540 N=1,NNN                                                    

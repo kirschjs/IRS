@@ -438,7 +438,7 @@ C
       Y=CLG(MS(KFR,MFR),2*IX,MS(KFL,MFL),MS(KFR,MFR),NDEL2)
       IF(Y.EQ.0.) GOTO 8913
       F = F * SQRT(2.*SML+1.)                                           
-      FAKTOR=F/Y                                                        
+      FAKTOR=F/Y
 C                                                                       
 8913  CONTINUE
 121    NBAND4 = (KFL - 1)*MZGR + KFR

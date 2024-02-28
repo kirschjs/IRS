@@ -256,7 +256,7 @@ c lines 3,4: Clebsch from WE theorem (reduced ME)
      2  *CLG(INT(2*GJR),INT(2*AK),INT(2*GJL),
      3      INT(2*(GJLM-AKM)),INT(2*AKM))
 
-C      write(nout,*) 'FK1new = ', FK1new,MFL,MFR
+C      write(nout,*) 'FK1new,MFL/R,MKC = ', FK1new,MFL,MFR,MKC
 C      WRITE(6,*) ' Jr mr Jl ml  L mL Sl Sr Ll Lr'
 C      write(6,'(10I3)')Int(GJR),INT(GJLM-AKM),Int(GJL),Int(GJLM),
 C     *  Int(AK),Int(AKM),Int(ML*0.5),
@@ -277,18 +277,17 @@ C     *  Int(MR*0.5),Int(LBL2*0.5),Int(LBR2*0.5)
 
 99    CONTINUE
 C     NORM
-      IF (ML.NE.MR) THEN
-        WRITE (6,1200) MKC, ML, MR
-C        write(nout,*) 'this must not be zero!',
-C     *   (-1)**(LBR+2*MR+ML-JWSR)*F6J(LBR2,MR,JWSR,ML,LBL2,0)
+C     this factor matches the one for the non-central operators
+C     while considering the rank-zero values in the 9J
+      FK1new=(-1)**(LBR)*F6J(LBR2,MR,JWSR,ML,LBL2,0)
+ 
+C      IF ((ML.NE.MR).or.(LBR2.ne.LBL2)) THEN
+C        WRITE (6,*) 'norm op should yield zero for ',MKC, ML, MR
 C        STOP 13
-      ENDIF
-
-C     HIER WIRD  DER FUER DIE NORM FALSCHE CLEBSCH-GORDAN-KOEFFIZIENT
-C     DES RED. MATR.-ELEMENTS HERAUSGEKUERZT.
-      FK1new=(-1)**(LBR+2*MR+ML-JWSR)*F6J(LBR2,MR,JWSR,ML,LBL2,0)
+C      ENDIF
 
 100   CONTINUE
+
 C  for F1 <J'|L|J> + F2 <J|L|J'>
       IF (MREG(MKC).eq.0) THEN
       FK1new = 0.
@@ -301,19 +300,20 @@ C     *           F1,F,FK1new,GEFAK(MKC),FPAR,MKC
       DO 458 K=1,IK1
       DO 458 L=1,JK1
       if(MKC.ne.1) then        
-      DNN(K,L) =     F1*DNN(K,L)
+      DNN(K,L) = F1*DNN(K,L)
       ELSE
 c      write(nout,*)'nf=',F1
-      DNN(K,L) = 0.5*F1*DNN(K,L)
+      DNN(K,L) = 1.0*F1*DNN(K,L)
+C      DNN(K,L) = 0.5*F1*DNN(K,L)      
       endif
 C     AUSDRUCK DER OP-WERTE UND DER K-POTENZ LAMBDA
 c      write(nout,'(A13,F8.4,3I3)')'(ecce) DNN = ',DNN(K,L,JJ),K,L,JJ
-      IF(IGAK.gt.-1) then
-      WRITE(6,'(A42,7I3,3F24.8)') 
-     *         'MFL,MFR,MKC,NBVL,NBVR,K,L,F1,DNN: ',
-     *           MFL,MFR,MKC,NBVL,NBVR,K,L,
-     *           F1,DNN(K,L)
-      endif
+C      IF(IGAK.gt.-1) then
+C      WRITE(6,'(A42,7I3,3F24.8)') 
+C     *         'MFL,MFR,MKC,NBVL,NBVR,K,L,F1,DNN: ',
+C     *           MFL,MFR,MKC,NBVL,NBVR,K,L,
+C     *           F1,DNN(K,L)
+C      endif
   458 CONTINUE
 C 
       DO 459 K=1,IK1
@@ -374,16 +374,13 @@ C      write(nout,*) 'norm_diag -start',NCOL,NROW
 C      write(nout,*) (DM(L,L,1),L=1,NROW-1 )
 C      write(nout,*) 'norm_diag -end'
 
-C      if(abs(DM(K,L,10)+DM(K,L,11)).gt.1E-20) then
       WRITE(NBAND2)
-     *   (( (DM(K,L,10)+DM(K,L,11))/SQRT(DM(L,L,1)*DM(K,K,1))
+     *   (( (DM(K,L,10)+DM(K,L,11))/SQRT(DM(L,L,1)*DM(K,K,1))      
      *   ,L=1,NCOL-1 ),K=1,NROW-1 )
-C      else
-C      WRITE(NBAND2) (((DM(K,L,10)+DM(K,L,11)),
-C     * L=1,NCOL-1),K=1,NROW-1)
-C      endif
 
       write(NBAND2) ((DM(K,L,1),L=1,NCOL-1 ),K=1,NROW-1 )
+      write(19,'(F20.12)') ((DM(K,L,1),L=1,NCOL-1 ),K=1,NROW-1 )
+      goto 666
 
 C      if(DM(K,L,10).ne.0) then
 C      write(nout,*)'non-zero MEs'

@@ -11,7 +11,7 @@ nB = 0
 strChCounter = 0  #scattering channel counter
 while nB < (anzStreuBases):
     for bastype in bastypes:
-
+        costr = costrD if bastype == boundstatekanal else costrF
         angu = channels[bastype]
         Jstreu = float(bastype.split('^')[0][-1])
         Jstreustring = '%s' % str(Jstreu)[:3]
@@ -22,9 +22,9 @@ while nB < (anzStreuBases):
 
         os.chdir(litpathD)
 
-        if os.path.isdir(litpathD + 'basis_struct/') == False:
-            os.mkdir(litpathD + 'basis_struct/')
-        os.chdir(litpathD + 'basis_struct/')
+        if os.path.isdir(litpathD + '/basis_struct') == False:
+            os.mkdir(litpathD + '/basis_struct')
+        os.chdir(litpathD + '/basis_struct')
 
         lit_w = {}
         lit_rw = {}
@@ -47,8 +47,8 @@ while nB < (anzStreuBases):
 
         if bastype == boundstatekanal:
             ngeosets = 1
-            nw = 9  #no. of widths in basis (Gaussian) function for ground state
-            wi, wf = 0.002, 70  #intial and final range for widths in basis (Gaussian) function for ground state
+            nw = 30  #no. of widths in basis (Gaussian) function for ground state
+            wi, wf = 0.1, 45  #intial and final range for widths in basis (Gaussian) function for ground state
             lit_w_tmp = [
                 np.abs(
                     np.geomspace(
@@ -61,11 +61,11 @@ while nB < (anzStreuBases):
             #lit_w_tmp = [np.array([vv for vv in lit_w_tmp[0] if vv < 100])]
         else:
             ngeosets = 1
-            nw = 20  #no. of widths in basis (Gaussian) function for scattering state
+            nw = 30  #no. of widths in basis (Gaussian) function for scattering state
             #wi, wf = 0.0001 + (1 - np.random.random()) * 0.001, 40.0 + (
             #    1 - np.random.random()
             #) * 2.0  #intial and final range for widths in basis (Gaussian) function for scattering state
-            wi, wf = 0.002, 80.
+            wi, wf = 0.0002, 50.
             #  -- internal widths --------------------------------------------------
             lit_w_tmp = [
                 np.abs(
@@ -135,9 +135,9 @@ while nB < (anzStreuBases):
             lfrags2 = lu_stru
             widi = he_iw
 
-        path_bas_int_rel_pairs = litpathD + 'basis_struct/LITbas_full_J%s_%s.dat' % (
+        path_bas_int_rel_pairs = litpathD + '/basis_struct/LITbas_full_J%s_%s.dat' % (
             Jstreustring, bastype
-        ) if bastype == boundstatekanal else litpathD + 'basis_struct/LITbas_full_J%s_%s_BasNR-%d.dat' % (
+        ) if bastype == boundstatekanal else litpathD + '/basis_struct/LITbas_full_J%s_%s_BasNR-%d.dat' % (
             Jstreustring, bastype, nB)
         if os.path.exists(path_bas_int_rel_pairs):
             os.remove(path_bas_int_rel_pairs)
@@ -147,9 +147,9 @@ while nB < (anzStreuBases):
                        fmt='%d')
         f.close()
 
-        path_frag_stru = litpathD + 'basis_struct/frags_LIT_J%s_%s.dat' % (
+        path_frag_stru = litpathD + '/basis_struct/frags_LIT_J%s_%s.dat' % (
             Jstreustring, bastype
-        ) if bastype == boundstatekanal else litpathD + 'basis_struct/frags_LIT_J%s_%s_BasNR-%d.dat' % (
+        ) if bastype == boundstatekanal else litpathD + '/basis_struct/frags_LIT_J%s_%s_BasNR-%d.dat' % (
             Jstreustring, bastype, nB)
         if os.path.exists(path_frag_stru): os.remove(path_frag_stru)
         with open(path_frag_stru, 'wb') as f:
@@ -160,9 +160,9 @@ while nB < (anzStreuBases):
                        newline=os.linesep)
         f.close()
 
-        path_intw = litpathD + 'basis_struct/intwDLIT_J%s_%s.dat' % (
+        path_intw = litpathD + '/basis_struct/intwDLIT_J%s_%s.dat' % (
             Jstreustring, bastype
-        ) if bastype == boundstatekanal else litpathD + 'basis_struct/intwDLIT_J%s_%s_BasNR-%d.dat' % (
+        ) if bastype == boundstatekanal else litpathD + '/basis_struct/intwDLIT_J%s_%s_BasNR-%d.dat' % (
             Jstreustring, bastype, nB)
         if os.path.exists(path_intw): os.remove(path_intw)
         with open(path_intw, 'wb') as f:
@@ -179,9 +179,9 @@ while nB < (anzStreuBases):
         os.chdir(calPath)
         print('Calculating in %s' % calPath)
         n2_inlu(8, fn='INLUCN', fr=lfrags2, npol=npoli)
-        os.system(BINBDGpath + 'LUDW_CN.exe')
+        os.system(BINBDGpath + '/LUDW_CN.exe')
         n2_inob(sfrags2, 8, fn='INOB')
-        os.system(BINBDGpath + 'KOBER.exe')
+        os.system(BINBDGpath + '/KOBER.exe')
 
         DinquaBS(intwi=widi, potf=potnn, npol=npoli)
         #n2_inen_bdg(sbas, Jstreu, costr, fn='INEN', pari=0)
@@ -189,24 +189,24 @@ while nB < (anzStreuBases):
 
         if bastype == boundstatekanal:
             n2_inlu(8,
-                    fn=deuteronpath + 'INLUCN_ref',
+                    fn=deuteronpath + '/INLUCN_ref',
                     fr=lfrags2,
                     indep=-0,
                     npol=npoli)
-            n2_inob(sfrags2, 8, fn=deuteronpath + 'INOB_ref', indep=-0)
-            os.system('cp INQUA_M ' + deuteronpath + 'INQUA_V18_ref')
-            os.system('cp INEN ' + deuteronpath + 'INEN_ref')
+            n2_inob(sfrags2, 8, fn=deuteronpath + '/INOB_ref', indep=-0)
+            os.system('cp INQUA_M ' + deuteronpath + '/INQUA_V18_ref')
+            os.system('cp INEN ' + deuteronpath + '/INEN_ref')
             bastypes.remove(boundstatekanal)
 
-        subprocess.run([BINBDGpath + 'QUAFL_M.exe'])
+        subprocess.run([BINBDGpath + '/QUAFL_M.exe'])
 
-        subprocess.run([BINBDGpath + 'DR2END_NORMAL.exe'])
+        subprocess.run([BINBDGpath + '/DR2END_NORMAL.exe'])
 
         suche_fehler()
 
-        matoutstr = '%smat_%s' % (
+        matoutstr = '%s/mat_%s' % (
             respath, bastype + '_BasNR-%d' % nB
-        ) if bastype != boundstatekanal else '%smat_%s' % (respath, bastype)
+        ) if bastype != boundstatekanal else '%s/mat_%s' % (respath, bastype)
 
         subprocess.call('cp MATOUTB %s' % matoutstr, shell=True)
         #matout = [line for line in open('MATOUTB')]

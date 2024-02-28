@@ -6,7 +6,7 @@ import numpy as np
 import rrgm_functions
 from settings import *
 #labelled spin configurations
-#   A   x   y  z   label  followed vy 
+#   A   x   y  z   label  followed vy
 elem_spin_prods_3 = {
     'he_no1':
     '  3  6  1  2            No1: t=0,T=1/2;s=1,S=1/2, l=even\n  1  1  1\n  1  3  2\n  1  4  1\n  2  3  1\n  3  1  2\n  3  2  1\n  4  1  1\n  1  3\n -1 12\n -1 12\n -1  3\n +1 12\n +1 12\n',
@@ -35,6 +35,7 @@ elem_spin_prods_3 = {
     'he_no6ii':
     '  3  6  1  2            No6: t=1,T=3/2;s=0,S=1/2, l=even\n  1  1  1\n  1  2  3\n  2  1  3\n  1  4  1\n  2  3  1\n  3  2  1\n  4  1  1\n  1  6\n -1  6\n  1  6\n -1  6\n  1  6\n -1  6\n',
 }
+
 
 def red_mod_3(typ='',
               max_coeff=11000,
@@ -85,9 +86,9 @@ def red_mod_3(typ='',
             ueco = [int(tmpt) for tmpt in bv_ent[bv - 1].split()]
             for coeff in range(len(ueco)):
                 try:
-                    if (abs(ueco[coeff]) > max_coeff) | (
-                        (abs(ueco[coeff]) < min_coeff) &
-                        (abs(ueco[coeff]) != 0)):
+                    if (abs(ueco[coeff])
+                            > max_coeff) | ((abs(ueco[coeff]) < min_coeff) &
+                                            (abs(ueco[coeff]) != 0)):
                         relw_to_del.append(coeff)
                     # nil contributors are collected separately to remove them all
                     if (abs(ueco[coeff]) == 0):
@@ -199,6 +200,7 @@ def red_mod_3(typ='',
     print(' %d-dim MS: B(3)=%4.3f |' % (basis_size, bdg_end), )
     return bdg_end, basis_size
 
+
 def reduce_3n(ch='612-05m',
               size3=90,
               ncycl=350,
@@ -233,20 +235,23 @@ def reduce_3n(ch='612-05m',
     os.system('cp ' + 'OUTPUT ' + 'out_' + ch)
     print('reduction to %d widths complete.' % size3)
 
-def dn_inqua_21(basis3,
-                dicti,
-                #relw=parameters_and_constants.w120,
-                relw=[10.,1.,0.1],
-                fn_inq='INQUA_N',
-                fn_inen='INEN',
-                fn='pot_dummy',
-                typ='05p'):
+
+def dn_inqua_21(
+        basis3,
+        dicti,
+        #relw=parameters_and_constants.w120,
+        relw=[10., 1., 0.1],
+        fn_inq='INQUA_N',
+        fn_inen='INEN',
+        fn='pot_dummy',
+        typ='05p'):
     width_blocks = {}
     for basv in basis3:
         label2 = dicti[basv[0]]
         inen = fn_inen + label2
         inqua = fn_inq + label2
-        bvinstruct_part_3 = rrgm_functions.determine_struct(inqua) #unused?????
+        bvinstruct_part_3 = rrgm_functions.determine_struct(
+            inqua)  #unused?????
         width_blocks[label2] = []
         outs = ''
         bvs = []
@@ -334,8 +339,7 @@ def dn_inqua_21(basis3,
                                              'Z%d' % pieces_counter,
                                              pieces_struct_3[n], len(relw))
             for bv in width_blocks[label3][sum(pieces_struct_3[:n]
-                                               ):sum(pieces_struct_3[:n +
-                                                                         1])]:
+                                               ):sum(pieces_struct_3[:n + 1])]:
                 outs += '%36s%-12.6f\n' % ('', float(bv[1]))
             for rw in range(0, len(relw)):
                 outs += '%12.6f' % float(relw[rw])
@@ -364,10 +368,12 @@ def dn_inqua_21(basis3,
             outfile.write(outs)
     return block_stru
 
+
 def insam(anz, fn='INSAM'):
     out = '  1  1\n  1%3d\n' % anz
     with open(fn, 'w') as outfile:
         outfile.write(out)
+
 
 def n3_inlu(anzO, fn='INLU', fr=[], indep=0):
     # INDEP = -1 (write header, parallel) +1 (write single files) 0 (serial version)
@@ -384,6 +390,7 @@ def n3_inlu(anzO, fn='INLU', fr=[], indep=0):
             out += '%s_%s\n' % (fr[n], fr[m])
     with open(fn, 'w') as outfile:
         outfile.write(out)
+
 
 def lit_3inlu_parallel(mul=0, anzo=7, indep=1, frag=[]):
     s = ''
@@ -405,6 +412,7 @@ def lit_3inlu_parallel(mul=0, anzo=7, indep=1, frag=[]):
         outfile.write(s)
     return
 
+
 def n3_inob(fr, anzO, fn='INOB', indep=0):
     # INDEP = -1 (write header, parallel) +1 (write single files) 0 (serial version)
     #                IBOUND => ISOSPIN coupling allowed
@@ -420,7 +428,16 @@ def n3_inob(fr, anzO, fn='INOB', indep=0):
     with open(fn, 'w') as outfile:
         outfile.write(out)
 
-def n3_inen_rhs(bas, jay, co, rw, fileName='INEN', pari=0, nzop=31, tni=11, anzb=0):
+
+def n3_inen_rhs(bas,
+                jay,
+                co,
+                rw,
+                fileName='INEN',
+                pari=0,
+                nzop=31,
+                tni=11,
+                anzb=0):
     head = '%3d  2 12%3d  1  1 +2  0  0 -1  0  1\n' % (tni, nzop)
     head += '  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1\n'
     head += co + '\n'
@@ -442,7 +459,15 @@ def n3_inen_rhs(bas, jay, co, rw, fileName='INEN', pari=0, nzop=31, tni=11, anzb
     with open(fileName, 'w') as outfile:
         outfile.write(head + out)
 
-def n3_inen_bdg(bas, jValue, co, fileName='INEN', pari=0, nzop=31, tni=11, idum=2):
+
+def n3_inen_bdg(bas,
+                jValue,
+                co,
+                fileName='INEN',
+                pari=0,
+                nzop=31,
+                tni=11,
+                idum=2):
     # idum=2 -> I4 for all other idum's -> I3
     head = '%3d%3d 12%3d  1  0 +0  0  0 -1  0  1\n' % (tni, idum, nzop)
     head += '  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1\n'
@@ -469,6 +494,7 @@ def n3_inen_bdg(bas, jValue, co, fileName='INEN', pari=0, nzop=31, tni=11, idum=
     with open(fileName, 'w') as outfile:
         outfile.write(head + out)
 
+
 def lit_3inlu(mul=0, anzo=7, frag=[], fn='INLU'):
     out = ''
     #   NBAND1,NBAND2,LAUS,KAUS,MKAUS,LALL
@@ -484,6 +510,7 @@ def lit_3inlu(mul=0, anzo=7, frag=[], fn='INLU'):
     with open(fn, 'w') as outfile:
         outfile.write(out)
     return
+
 
 def lit_3inob_parallel(anzo=13, indep=1, fr=[]):
     out = ''
@@ -501,6 +528,7 @@ def lit_3inob_parallel(anzo=13, indep=1, fr=[]):
         outfile.write(out)
     return
 
+
 def lit_3inob(anzo=13, fr=[], fn='INOB'):
     out = ''
     out += '  8  3  3  3\n'
@@ -513,6 +541,7 @@ def lit_3inob(anzo=13, fr=[], fn='INOB'):
     with open(fn, 'w') as outfile:
         outfile.write(out)
     return
+
 
 def parallel_mod_of_3inqua(frlu=[],
                            frob=[],
@@ -538,6 +567,7 @@ def parallel_mod_of_3inqua(frlu=[],
     # r7 c2:   S  L           S_c
     #  1   :   0  0  1S0         0
     #  2   :   1  0  3S1         2
+
 
 def lit_3inqua(intwi=[],
                relwi=[],
@@ -596,10 +626,17 @@ def lit_3inqua(intwi=[],
     #  1   :   0  0  1S0         0
     #  2   :   1  0  3S1         2
 
-def lit_3inen_bare(JWSL, JWSLM, MULM2, JWSR, MREG='', anzo=11, outFileNm='INEN'):
+
+def lit_3inen_bare(JWSL,
+                   JWSLM,
+                   MULM2,
+                   JWSR,
+                   MREG='',
+                   anzo=11,
+                   outFileNm='INEN'):
     out = ''
     # NBAND1,IGAK,KAUSD,KEIND ,IDUM
-    out += ' 10  6  0  0\n'
+    out += ' 10  0  0  0\n'
     # 1-11 Einteilchen
     # 10,11: r^LY_LM fuer p,n
     if MREG == '':
@@ -617,6 +654,7 @@ def lit_3inen_bare(JWSL, JWSLM, MULM2, JWSR, MREG='', anzo=11, outFileNm='INEN')
         outfile.write(out)
     outfile.close()
     return
+
 
 def lit_3inen(BUECO,
               KSTREU,
@@ -687,6 +725,7 @@ def lit_3inen(BUECO,
     outfile.close()
     return
 
+
 def he3inqua(intwi=[], relwi=[], potf=''):
     s = ''
     # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
@@ -719,6 +758,7 @@ def he3inqua(intwi=[], relwi=[], potf=''):
         outfile.write(s)
     return
 
+
 def he3inquaBS(intwi=[], relwi=[], potf='', inquaout='INQUA_M'):
     s = ''
     # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
@@ -748,6 +788,7 @@ def he3inquaBS(intwi=[], relwi=[], potf='', inquaout='INQUA_M'):
     with open(inquaout, 'w') as outfile:
         outfile.write(s)
     return
+
 
 def lit_3inqua_M(intwi=[], relwi=[], LREG='', anzo=13, outFileNm='INQUA'):
     s = ''
@@ -787,6 +828,7 @@ def lit_3inqua_M(intwi=[], relwi=[], LREG='', anzo=13, outFileNm='INQUA'):
     # r7 c2:   S  L           S_c
     #  1   :   0  0  1S0         0
     #  2   :   1  0  3S1         2
+
 
 def lit_3inqua_seq(intwi=[], relwi=[], LREG='', anzo=13, outFileNm='INQUA'):
     s = ''
@@ -834,6 +876,7 @@ def lit_3inqua_seq(intwi=[], relwi=[], LREG='', anzo=13, outFileNm='INQUA'):
     #  1   :   0  0  1S0         0
     #  2   :   1  0  3S1         2
 
+
 def read_inob(infile='INOB'):
     fi = [line for line in open(infile)]
     ob_stru = []
@@ -842,6 +885,7 @@ def read_inob(infile='INOB'):
             ob_stru.append(ll.split()[-1].strip())
     return ob_stru
 
+
 def read_inlu(infile='INLU'):
     fi = [line for line in open(infile)][2:]
     lu_stru = []
@@ -849,6 +893,7 @@ def read_inlu(infile='INLU'):
         lu_stru.append(fi[n].split()[0].strip() + fi[n].split()[1].strip() +
                        fi[n + 1].split()[0].strip())
     return lu_stru
+
 
 def retrieve_he3_M(inqua):
     relw = []

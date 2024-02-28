@@ -70,20 +70,20 @@ if os.path.isdir(litpathD) != False:
 else:
     os.mkdir(litpathD)
 
-deuteronpath = litpathD + 'D/'
+deuteronpath = litpathD + 'D'
 if os.path.isdir(deuteronpath) == False:
     os.mkdir(deuteronpath)
 
-respath = litpathD + 'results/'
+respath = litpathD + '/results'
 if os.path.isdir(respath) == False:
     os.mkdir(respath)
 
-BINBDGpath = pathbase + '/src_fortran/'
-BINLITpath = pathbase + '/src_fortran/'
-BINLITpathPOL = pathbase + '/src_fortran/'
+BINBDGpath = pathbase + '/src_fortran'
+BINLITpath = pathbase + '/src_fortran'
+BINLITpathPOL = pathbase + '/src_fortran'
 
 mpii = '137'
-potnn = pathbase + '/data/AV18'  # '/data/BONN'  #'/data/AV4.14'  #
+potnn = pathbase + '/data/AV18m'  #'/data/BONN'  #'/data/AV4.14'  #
 
 potnnn = pathbase + '/data/urbana9_AK_neu'
 
@@ -135,11 +135,17 @@ eps_up = [10.2, 10.01]
 eps_low = [0.2, 0.1]
 
 # -- here, I allowed for an enhancement of certain operators, to bind an S-wave triton with v18/uix
-costr = ''
+costrF = ''
 for nn in range(1, 14):
     cf = 1.0 if (nn < 28) & (nn != 91) else 0.0
-    cf = 1.0 if (nn == 2) else cf
-    costr += '%12.7f' % cf if (nn % 7 != 0) else '%12.7f\n' % cf
+    cf = 0.0 if (nn > 51) else cf
+    costrF += '%12.7f' % cf if (nn % 7 != 0) else '%12.7f\n' % cf
+
+costrD = ''
+for nn in range(1, 14):
+    cf = 1.0 if (nn < 28) & (nn != 91) else 0.0
+    cf = 0.0 if ((nn > 19)) else cf
+    costrD += '%12.7f' % cf if (nn % 7 != 0) else '%12.7f\n' % cf
 
 #print('costr = ', costr)
 
