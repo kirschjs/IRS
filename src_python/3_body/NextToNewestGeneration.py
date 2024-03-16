@@ -77,7 +77,10 @@ for scatteringChannel in set.ScatteringChannels:
 for basisType in basisTypes:
 
     # ini_dims = [BS(int),BS(rel),SCATT(int),SCATT(rel)]
-    initialDimensions = [7, 6, 8, 7]
+    #  "realistic/test" setting  [8, 20, 8, 24]/[5, 4, 7, 4]
+    # if you dare to exceed the 'realistic' dimensions, check and increase slightly NDIM in par.h
+    # in src_fortran/UIX and src_fortran/V18 and possibly also in src_fortran/par/(DR)QUAF
+    initialDimensions = [8, 20, 8, 24]
 
     # lower and upper bounds for the grids from which the initial seed state is taken
     # 1-4: initial state, 1-2(jacobi1), 3-4(jacobi2)
@@ -122,7 +125,11 @@ for basisType in basisTypes:
                 'Ground-state energy'][pwpurge]
     # evolution criteria
     minimalConditionNumber = 1e-18
-    targetEVinterval = [-10., 180.0]
+    # energy ranges in which a larger number of Hamiltonian eigenvalues
+    # correspond to a "stronger" basis individuum
+    targetEVinterval = [
+        -9., 180.0
+    ] if basisType == set.boundstateChannel else [-3., 80.0]
     removalGainFactor = 1.05
     maxOnPurge = 113
     maxOnTrail = 43
@@ -132,7 +139,7 @@ for basisType in basisTypes:
     tritonBindingEnergy = 8.482
     he3BindingEnergy = 7.72
     # get the initial, random basis seed to yield thresholds close to the results in a complete basis
-    channelThreshold = -3.0 if basisType == set.boundstateChannel else 0.0
+    channelThreshold = -3.0 if basisType == set.boundstateChannel else 1.0
     CgfCycles = 1
     # nRaces := |i|
     nRaces = 1 if basisType == set.boundstateChannel else 1
@@ -386,7 +393,6 @@ for basisType in basisTypes:
                           angMomentum=jValue)
 
             smartEV, parCond = smart_ev(ma, threshold=1e-9)
-
             groundstateEnergy = smartEV[-1]
 
             print(
@@ -409,6 +415,7 @@ for basisType in basisTypes:
                     'Elemental cfg of the seed was removed entirely during purge.\n new round of sowing.'
                 )
                 groundstateEnergy = 42.0
+        exit()
 
         # > nState > nBasis > optimize each orb-ang, spin-iso cfg in a number of cycles
         for nCgfCycle in range(CgfCycles):
@@ -482,6 +489,7 @@ for basisType in basisTypes:
                                     intertwining(motherR,
                                                  fatherR,
                                                  mutation_rate=muta_initial))
+
                             rw1 = list(np.array(offspringR)[:, 1])
                             rw1.sort()
                             rw1 = rw1[::-1]

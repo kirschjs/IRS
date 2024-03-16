@@ -6,6 +6,10 @@ from settings import *
 
 def loveliness(groundstateEnergy, conditionNumber, HeigenvaluesbelowX,
                minimalConditionnumber):
+
+    #    return HeigenvaluesbelowX**4 * np.abs(groundstateEnergy)**8 / np.abs(
+    #        np.log(conditionNumber))**1
+
     return HeigenvaluesbelowX**2 * np.abs(groundstateEnergy)**4 / np.abs(
         np.log(conditionNumber))**1
 

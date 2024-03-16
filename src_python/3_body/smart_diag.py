@@ -56,6 +56,7 @@ def blunt_ev(set,
                 pari=0,
                 nzop=PotOpCount,
                 tni=potChoice)
+
     if set.parallel == -1:
         testDiskUsage(set.temporaryDirectory, set.temporaryFree)
         subprocess.run([
