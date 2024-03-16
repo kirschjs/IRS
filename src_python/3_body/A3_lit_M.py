@@ -22,7 +22,7 @@ uniqueDirectory = sys.argv[1]  # before bridgeA3
 MPIProcesses = sys.argv[2]
 
 set = A3settings(uniqueDirectory=uniqueDirectory,
-                 shouldExist=True,
+                 shouldExist=False,
                  mpiProcesses=MPIProcesses)
 
 set.resultsDirectory = set.backupDirectory

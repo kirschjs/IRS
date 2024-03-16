@@ -6,22 +6,35 @@ import matplotlib.animation as animation
 import shutil
 import re
 
-from bridge import *
+fig = plt.figure()
+#ax2 = fig.add_subplot(121)
+ax1 = fig.add_subplot(111)
+ax1.set_title(r'')
+ax1.set_xlabel(r'')
+ax1.set_ylabel(r'')
 
+lbas = 1.7
+wmin = 0.001
+start = np.log(wmin) / np.log(lbas)
+wmax = 30.1
+stop = np.log(wmax) / np.log(lbas)
+anz = 200
 
-def plot_LIT_source():
+xx = np.arange(anz)
+yy = np.logspace(start,
+                 stop,
+                 num=anz,
+                 endpoint=True,
+                 base=lbas,
+                 dtype=None,
+                 axis=0)
 
-    fig = plt.figure()
-    ax1 = fig.add_subplot(121)
-    ax2 = fig.add_subplot(122)
+print(yy)
 
-    ax1.set_title(r'')
-    ax1.set_xlabel('photon momentum [MeV]')
+ax1.hist(yy, bins=1000)
 
-    [ax1.plot(photon_energy, rhs[n]) for n in range(anzcomp)]
-
-    plt.show()
-
+#[ax1.plot(photon_energy, rhs[n]) for n in range(anzcomp)]
+plt.show()
 
 #outstr_head = '# k_photon [MeV]'
 #for bvn in range(anzcomp):

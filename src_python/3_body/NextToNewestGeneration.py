@@ -77,7 +77,7 @@ for scatteringChannel in set.ScatteringChannels:
 for basisType in basisTypes:
 
     # ini_dims = [BS(int),BS(rel),SCATT(int),SCATT(rel)]
-    initialDimensions = [5, 6, 5, 6]
+    initialDimensions = [7, 6, 8, 7]
 
     # lower and upper bounds for the grids from which the initial seed state is taken
     # 1-4: initial state, 1-2(jacobi1), 3-4(jacobi2)

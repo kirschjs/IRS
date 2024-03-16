@@ -303,7 +303,7 @@ C     *           F1,F,FK1new,GEFAK(MKC),FPAR,MKC
       DNN(K,L) = F1*DNN(K,L)
       ELSE
 c      write(nout,*)'nf=',F1
-      DNN(K,L) = 1.0*F1*DNN(K,L)
+      DNN(K,L) = F1*DNN(K,L)
 C      DNN(K,L) = 0.5*F1*DNN(K,L)      
       endif
 C     AUSDRUCK DER OP-WERTE UND DER K-POTENZ LAMBDA

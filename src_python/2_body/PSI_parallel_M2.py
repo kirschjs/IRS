@@ -47,33 +47,39 @@ while nB < (anzStreuBases):
 
         if bastype == boundstatekanal:
             ngeosets = 1
-            nw = 30  #no. of widths in basis (Gaussian) function for ground state
-            wi, wf = 0.1, 45  #intial and final range for widths in basis (Gaussian) function for ground state
+            nw = 20  #no. of widths in basis (Gaussian) function for ground state
+            wi, wf, lbase = 0.1, 10.5, 11  #intial and final range for widths in basis (Gaussian) function for ground state
+            sta = np.log(wi) / np.log(lbase)
+            sto = np.log(wf) / np.log(lbase)
             lit_w_tmp = [
                 np.abs(
-                    np.geomspace(
-                        start=wi,  # * (1 + 1 * n / (ngeosets)),
-                        stop=wf,  # * (1 + n / ngeosets),
+                    np.logspace(
+                        start=sta,  # * (1 + 1 * n / (ngeosets)),
+                        stop=sto,  # * (1 + n / ngeosets),
                         num=nw,
+                        base=lbase,
                         endpoint=True,
                         dtype=None)) for n in range(ngeosets)
             ]
             #lit_w_tmp = [np.array([vv for vv in lit_w_tmp[0] if vv < 100])]
         else:
             ngeosets = 1
-            nw = 30  #no. of widths in basis (Gaussian) function for scattering state
+            nw = 20  #no. of widths in basis (Gaussian) function for scattering state
             #wi, wf = 0.0001 + (1 - np.random.random()) * 0.001, 40.0 + (
             #    1 - np.random.random()
             #) * 2.0  #intial and final range for widths in basis (Gaussian) function for scattering state
-            wi, wf = 0.0002, 50.
+            wi, wf, lbase = 0.004, 20., 6
+            sta = np.log(wi) / np.log(lbase)
+            sto = np.log(wf) / np.log(lbase)
             #  -- internal widths --------------------------------------------------
             lit_w_tmp = [
                 np.abs(
-                    np.geomspace(start=wi * (1 + 1 * n / (ngeosets)),
-                                 stop=wf * (1 + n / ngeosets),
-                                 num=nw,
-                                 endpoint=True,
-                                 dtype=None)) for n in range(ngeosets)
+                    np.logspace(start=sta,
+                                stop=sto,
+                                num=nw,
+                                endpoint=True,
+                                base=lbase,
+                                dtype=None)) for n in range(ngeosets)
             ]
             #lit_w_tmp = [np.array([vv for vv in lit_w_tmp[0] if vv < 100])] * [
             #    1 + (np.random.random() - 0.5) * 0.005 for i in range(nw)]
