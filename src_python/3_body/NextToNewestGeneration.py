@@ -80,7 +80,7 @@ for basisType in basisTypes:
     #  "realistic/test" setting  [8, 20, 8, 24]/[5, 4, 7, 4]
     # if you dare to exceed the 'realistic' dimensions, check and increase slightly NDIM in par.h
     # in src_fortran/UIX and src_fortran/V18 and possibly also in src_fortran/par/(DR)QUAF
-    initialDimensions = [8, 20, 8, 24]
+    initialDimensions = [4, 5, 4, 6]
 
     # lower and upper bounds for the grids from which the initial seed state is taken
     # 1-4: initial state, 1-2(jacobi1), 3-4(jacobi2)
@@ -139,7 +139,7 @@ for basisType in basisTypes:
     tritonBindingEnergy = 8.482
     he3BindingEnergy = 7.72
     # get the initial, random basis seed to yield thresholds close to the results in a complete basis
-    channelThreshold = -3.0 if basisType == set.boundstateChannel else 1.0
+    channelThreshold = -6.0 if basisType == set.boundstateChannel else -1.4
     CgfCycles = 1
     # nRaces := |i|
     nRaces = 1 if basisType == set.boundstateChannel else 1
@@ -415,7 +415,6 @@ for basisType in basisTypes:
                     'Elemental cfg of the seed was removed entirely during purge.\n new round of sowing.'
                 )
                 groundstateEnergy = 42.0
-        exit()
 
         # > nState > nBasis > optimize each orb-ang, spin-iso cfg in a number of cycles
         for nCgfCycle in range(CgfCycles):
@@ -826,8 +825,8 @@ for basisType in basisTypes:
                optCond, groundstateEnergy, optLove))
 
         # Output on tape; further processing via A3...py
-        suf = 'ref' if basisType == set.boundstateChannel else 'fin-%d' % int(
-            basisNo + 1)
+        suf = 'ref' if basisType == set.boundstateChannel else 'fin-%d' % ScatteringBasis[
+            basisNo]
 
         lfrags = np.array(initialCiv[0])[:, 1].tolist()
         sfrags = np.array(initialCiv[0])[:, 0].tolist()

@@ -10,7 +10,7 @@ def loveliness(groundstateEnergy, conditionNumber, HeigenvaluesbelowX,
     #    return HeigenvaluesbelowX**4 * np.abs(groundstateEnergy)**8 / np.abs(
     #        np.log(conditionNumber))**1
 
-    return HeigenvaluesbelowX**2 * np.abs(groundstateEnergy)**4 / np.abs(
+    return HeigenvaluesbelowX**4 * np.abs(groundstateEnergy)**8 / np.abs(
         np.log(conditionNumber))**1
 
 
