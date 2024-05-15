@@ -107,39 +107,39 @@ class A3settings:
     # convention: bound-state-expanding BVs: (1-8), i.e., 8 states per rw set => nzf0*8
     channels = {
         # helion
-        'npp0.5^+': [
-            ['000', ['he_no1', 'he_no6', 'he_no1', 'he_no6']],  # 1,2
-            ['022', ['he_no2', 'he_no2']],  # 3
-            ['202', ['he_no2', 'he_no2']],  # 4
-            ['111', ['he_no3', 'he_no5']],  # 5,6
-            ['112', ['he_no5']],  # 7
-            ['220', ['he_no1', 'he_no6']],  # 8,9
-            ['221', ['he_no1', 'he_no2', 'he_no6']],  # 10,11,12
-            ['222', ['he_no2']],  # 13
+        'pnn0.5^+': [
+            ['000', ['t_no1', 't_no6', 't_no1', 't_no6']],  # 1,2
+            ['022', ['t_no2', 't_no2']],  # 3
+            ['202', ['t_no2', 't_no2']],  # 4
+            ['111', ['t_no3', 't_no5']],  # 5,6
+            ['112', ['t_no5']],  # 7
+            ['220', ['t_no1', 't_no6']],  # 8,9
+            ['221', ['t_no1', 't_no2', 't_no6']],  # 10,11,12
+            ['222', ['t_no2']],  # 13
         ],
         #          [l1l2L,[compatible (iso)spin configurations]]
         '0.5^-': [
-            ['011', ['he_no1', 'he_no6', 'he_no1', 'he_no6']],
-            ['101', ['he_no3']],
-            ['211', ['he_no2', 'he_no1', 'he_no6']],
-            ['212', ['he_no2']],
-            ['121', ['he_no3', 'he_no5']],
-            ['122', ['he_no5']],
+            ['011', ['t_no1', 't_no6', 't_no1', 't_no6']],
+            ['101', ['t_no3']],
+            ['211', ['t_no1', 't_no2', 't_no6']],
+            ['212', ['t_no2']],
+            ['121', ['t_no3', 't_no5']],
+            ['122', ['t_no5']],
         ],
         '1.5^-': [
-            ['011', ['he_no1', 'he_no2', 'he_no6']],
-            ['101', ['he_no3']],
-            ['211', ['he_no1', 'he_no2', 'he_no6']],
-            ['212', ['he_no2']],
-            ['121', ['he_no3', 'he_no5']],
-            ['122', ['he_no3', 'he_no5']],
-            ['213', ['he_no2']],
+            ['011', ['t_no1', 't_no2', 't_no6', 't_no1']],
+            ['101', ['t_no3']],
+            ['211', ['t_no1', 't_no2', 't_no6']],
+            ['212', ['t_no2']],
+            ['121', ['t_no3', 't_no5']],
+            ['122', ['t_no3', 't_no5']],
+            ['213', ['t_no2']],
         ]
     }
 
     ScatteringChannels = ['0.5^-', '1.5^-']
     #                  realistic    L>0 (only)         deuteron
-    boundstateChannel = 'npp0.5^+'
+    boundstateChannel = 'pnn0.5^+'
 
     J0 = float(boundstateChannel.split('^')[0][-3:])
 
@@ -166,10 +166,7 @@ class A3settings:
     # orbital-angular-momentum dependent upper bound '=' UV cutoff (narrowest state)
     upperboundWidthiL = [22., 7., 6.]
     upperboundWidthiR = [22., 7., 6.]
-    psiChannelLabels = [
-        'he_no1', 'he_no1y', 'he_no2', 'he_no2y', 'he_no3', 'he_no3y',
-        'he_no5', 'he_no5y', 'he_no6', 'he_no6y'
-    ]
+    psiChannelLabels = ['t_no1', 't_no2', 't_no3', 't_no5', 't_no6']
     psiChannels = [
         '000',
         '202',

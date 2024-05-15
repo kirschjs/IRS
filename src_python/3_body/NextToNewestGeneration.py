@@ -80,12 +80,12 @@ for basisType in basisTypes:
     #  "realistic/test" setting  [8, 20, 8, 24]/[5, 4, 7, 4]
     # if you dare to exceed the 'realistic' dimensions, check and increase slightly NDIM in par.h
     # in src_fortran/UIX and src_fortran/V18 and possibly also in src_fortran/par/(DR)QUAF
-    initialDimensions = [4, 5, 4, 6]
+    initialDimensions = [6, 7, 4, 6]
 
     # lower and upper bounds for the grids from which the initial seed state is taken
     # 1-4: initial state, 1-2(jacobi1), 3-4(jacobi2)
     # 5-8: final   states,5-6(jacobi1), 7-8(jacobi2)
-    initialGridBounds = [0.2, 12.25, 0.001, 12.5, 0.01, 2.25, 0.0001, 2.5]
+    initialGridBounds = [0.2, 22.25, 0.001, 22.5, 0.01, 2.25, 0.0001, 2.5]
 
     jValue = float(basisType.split('^')[0][-3:])
     jString = '%s' % str(jValue)[:3]
@@ -192,7 +192,7 @@ for basisType in basisTypes:
                    groundstateEnergy, basCond))
 
             if ((groundstateEnergy >= channelThreshold) |
-                (groundstateEnergy < -1.2 * he3BindingEnergy)):
+                (groundstateEnergy < -1.2 * tritonBindingEnergy)):
                 print(
                     'ECCE! seed does not expand states with E<%f => new sowing attempt.'
                     % channelThreshold)

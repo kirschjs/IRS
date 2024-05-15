@@ -293,8 +293,8 @@ C  for F1 <J'|L|J> + F2 <J|L|J'>
 C     ALLE OPERATOREN
 C                 = hbarc/mn for siegert proton      
       F1=FK1new*GEFAK(MKC)*FPAR
-C      write(6,'(A30,5F12.8,I3/)')'F1,F,FK1new,GEFAK(MKC),FPAR,MKC',
-C     *           F1,F,FK1new,GEFAK(MKC),FPAR,MKC
+      write(6,'(A30,5F12.8,I3/)')'F1,F,FK1new,GEFAK(MKC),FPAR,MKC',
+     *           F1,F,FK1new,GEFAK(MKC),FPAR,MKC
       DO 458 K=1,IK1
       DO 458 L=1,JK1
       if(MKC.ne.1) then        

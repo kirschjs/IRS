@@ -415,7 +415,10 @@ C      NBAND3 GESCHRIEBEN
       N3 = NDIM2
       IF (N2.GT.N3) GOTO 1021
       REWIND NBAND3                                                     
-      WRITE(NBAND2)    NNN,NNN,NNN                                      
+      WRITE(NBAND2)    NNN,NNN,NNN
+C      if(mkc.eq.2)then
+C      WRITE(6,*) 'mkc 2: ',  NNN,NNN,NNN
+C      endif                                    
       IF(NNN.EQ.0) GOTO 700
 C     MATRIXELEMENTE ZWISCHEN ZUSAMMENGESETZTEN STRUKTUREN              
       DO 130 KFL=1,MZGL                                                 
@@ -436,7 +439,11 @@ C
       F=1.
 422   FAKTOR=0.
       Y=CLG(MS(KFR,MFR),2*IX,MS(KFL,MFL),MS(KFR,MFR),NDEL2)
-      IF(Y.EQ.0.) GOTO 8913
+      IF(Y.EQ.0.) then 
+c      write(6,*)'MS(KFR,MFR),2*IX,MS(KFL,MFL),MS(KFR,MFR),NDEL2',
+c     1  MS(KFR,MFR),2*IX,MS(KFL,MFL),MS(KFR,MFR),NDEL2 
+      GOTO 8913
+      endif
       F = F * SQRT(2.*SML+1.)                                           
       FAKTOR=F/Y
 C                                                                       
@@ -475,6 +482,10 @@ C     NOTIEREN DER LISTEN ZUSAMMENGESETZTER STRUKTUREN
       READ (NBAND3) N1, (NZD(I6),I6=1,NZT)
       WRITE(NBAND2) N1, (NZD(I6),I6=1,NZT) ,
      1    ((UU(KFL,KFR),KFL=1,MZGL),KFR=1,MZGR)
+C      if(mkc.eq.1)then
+C      WRITE(6,*) N1, (NZD(I6),I6=1,NZT) ,
+C     1    ((UU(KFL,KFR),KFL=1,MZGL),KFR=1,MZGR)     
+C      endif
 810   CONTINUE
   700 CONTINUE                                                          
 C      ENDE LOOP OPERATOREN
@@ -604,9 +615,12 @@ C      NKOR(.,4) INVERSE PERMUTATION ZU NKOR(.,3), P0**-1
   110 NKOR(K,5)=NKOR(L,4)
 C    NKOR(.,5) PERMUTATION P0**-1 * NKOR(.,2)
 C    NKOR(.,2) IST HIER DIE IDENTITAET
-      LT1=NKOR(LT,4)                                                    
+      LT1=NKOR(LT,4)     
+C <>ECCE<>
+
 C      CHECK OB WW-TEILCHEN PROTON ODER NEUTRON
-      GOTO(117,114,115,114,115),MKC
+C      GOTO(117,114,115,114,115),MKC
+      GOTO(117,114,115,114,115),MKC      
 114   IF(NALG(LT1,1)-3) 117,161,161
 115   IF(NALG(LT1,1)-3) 161,117,117
   117 DO 120 NF1=1,NH(1,1)
@@ -851,7 +865,7 @@ C     EINGABE !  K1 = ZAHL DER CLUSTER, MFL= NR DER ZERLEGUNG
 C     LL = ZAHL DER CLUSTER IM ERSTEN FRAGMENT ,WIRD UM 1 ERHOEHT,ABER
 C     NOL WIRD ANSCHLIESEND NICHT MEHR VERWENDET
 C     SVEC ENTHAELT DIE JACOBIKOORDINATEN ALS FUNKTION DER EINTEILCHEKOO
-C     DIE ORTHOGONALE TRANSFORMATION WIRD OHNE!!! DEN SCHWERPUNKT AUSGEF
+C     DIE ORTHOGONALE TRANSFORMATION WIRD OHNE! DEN SCHWERPUNKT AUSGEF
 C     RVEC ENTHAELT DIE DAZU TRANSPONIERTE MATRIX
 C     S(I)=SUMME UEBER J (RVEC(I,J)*R(J))
 C     C(.,.,K) =1, KENNZEICHNET DIE INNEREN JACOBIKOOR. VON CLUSTER K
@@ -964,6 +978,8 @@ C     DIE K-TE RELATIVKOORD. IST SUMME UEBER M (VEC(M,K)*R(M))
       WRITE(NBAND2) ((RVEC(M,N),M=1,NZV),N=1,NZT)                       
       WRITE(NBAND2) ((SVEC(N,M),M=1,NZV),N=1,NZT)                       
       WRITE(NBAND2) ((C(N,K),N=1,NZV),K=1,K4)
+      WRITE(6,*) 'r: ',((RVEC(M,N),M=1,NZV),N=1,NZT)                       
+      WRITE(6,*) 's: ',((SVEC(N,M),M=1,NZV),N=1,NZT)                       
 C      DIE UEBERGABE VON C KANN AUF C(M,M,K) EINGESCHRAENKT WERDEN
       RETURN 
       END  

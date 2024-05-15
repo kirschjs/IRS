@@ -742,6 +742,7 @@ C       SP-R/L =     total Spin
 C       2(SR+1)  <SL||id||SR> = 1/Sqrt[2S+1]   
       FK=F6J(2*LBR,MR,JWS,ML,2*LBL,KAK)
       F=F*FK
+
       IF(F.EQ.0.) GOTO 40
       DO 42 JKAL=1,JKK(NUML)
       DO 142 JKAR=1,JKK(NUMR)

@@ -326,7 +326,6 @@ c     => after one operator has been calculated, the dimension counter is reset
       NR = MZG(MFR)
       IY=MOD(MKC-2,4)+2
       if(MKC.eq.1) IY = 1
-
 C     IY BESTIMMT DEN OBEROPERATOR ZU MKC
 C
       IF(NREG(IY).LE.0) GOTO 440
@@ -341,6 +340,8 @@ C
 C
 C       READ LUELMA ELEMENTE
 440   IX=MOD(MKC-1,2)
+
+
       if(mkc.eq.1) IX = 1
       IF(IX.EQ.0) GOTO 86
       CALL LURE(NLUDZ,ITV2)
@@ -356,6 +357,8 @@ C       READ LUELMA ELEMENTE
       IF(KOM(MKC,MFL,MFR).LE.0) GOTO 540
       stop 540
       WRITE (NBAND1) NUML,NUMR,II1,II2,((DM(K,L),K=1,II1),L=1,II2)
+      if(mkc.ne.10) goto 540
+      WRITE (6,*) NUML,NUMR,II1,II2,((DM(K,L),K=1,II1),L=1,II2)      
   540 CONTINUE                                                          
       IF(KOM(MKC,MFL,MFR).GT.0) GOTO 42
 95    IF(IRHO*JRHO.LE.0) GOTO 42
@@ -366,7 +369,9 @@ C       READ LUELMA ELEMENTE
       DO 490 M=1,NZT                                                    
   490 LC1(M)=0                                                          
       IF (NTE(IY)*ITV2.LE.0) GOTO 900
+
       DO 44 MTE=1,NTE(IY)
+c      write(6,*)'MKC , mte = ',mkc,mte
 1491  MM=0                                                              
       DO 491 M=1,NZT                                                    
   491 MM=MM+IABS(LC(M,MTE,IY)-LC1(M))
@@ -431,6 +436,9 @@ C       READ LUELMA ELEMENTE
       JPL=(KPL-1)*NZLWMA+KLL
       NUML = NUM(3,M,MFL) 
       TS = COF(KPAR,M,MFL)
+
+      if(mkc.eq.1) TS=TS*2./ DBLE(NZT*NZV)
+
       IF (ABS(TS).LT.1.E-10) GOTO 101                                   
       MADL = (M-1) * IK1                                                
       DO 105 N=1,JRHO
@@ -453,6 +461,8 @@ C       READ LUELMA ELEMENTE
  105  CONTINUE                                                          
  101  CONTINUE                                                          
       NSH = I                                                           
+C      if(mkc.eq.10)then
+C      endif
       IF (NSH.EQ.0) GOTO 70                                             
       DO 72   M = 1,NZV                                                 
       DO 72   N = 1,NZV                                                 
@@ -511,9 +521,10 @@ c      IF(A.GT.0.) GOTO 512
 c      WRITE (NBAND1) NUML,NUMR,II1,II1,A,A                              
 c      GOTO 481                                                          
 512   WRITE(NBAND1) NUML,NUMR,IK1,JK1,((DM(K,L),K=M1,M2),L=N1,N2)
-C      if(mkc.eq.10) then
-C      WRITE(nout,*) MKC,NUML,NUMR,IK1,JK1,((DM(K,L),K=M1,M2),L=N1,N2)
-C      endif
+      if(mkc.eq.10) then
+      WRITE(nout,*) MKC,NUML,NUMR,IK1,JK1,((DM(K,L),K=M1,M2),L=N1,N2)
+      write(nout,*)'---------'
+      endif
   481 CONTINUE                                                          
 
 1021  FORMAT(1X,10E12.5)
@@ -576,6 +587,7 @@ C
       GOTO 23
 22    READ(NBAND3) (JQ(KW),INDPO(KW),EPO(KW),(MVK(IW,KW),IW=1,IQM),
      1 KW=1,K1ZAHL)
+c      write(6,*) 'mkc: ',mkc,' epo: ',(EPO(KW),KW=1,K1ZAHL)
       IF(MKC.EQ.4) WRITE(NBAND7)(JQ(KW),INDPO(KW),EPO(KW),
      $(MVK(IW,KW),IW=1,IQM),KW=1,K1ZAHL)
 23    CONTINUE
@@ -695,7 +707,7 @@ C
       IF(NZV1.EQ.0) GOTO 71
        DO 1   M = 1,NZV1
       BETA(M)=1./ SQRT(QO(M,M))               
-    1 FFF=PHI2*BETA(M)*FFF                   
+    1 FFF=PHI2*BETA(M)*FFF
    71 CONTINUE                              
       BETA(NZV) = 1.                       
       DO 2 N=1,MC1                        
@@ -747,6 +759,9 @@ C
       DO 93   N = M,NZAV                                                
       I = I + 1                                                         
    93 SS(I) = 2.*(S(I) + P(N,NZV)*P(M,NZV))
+      if(mkc.eq.10)then
+      write(6,*) 'ss: ',(SS(L),L=1,I) 
+      endif
       I = (NZAV*(NZAV-1))/2                                             
       IF(NREB.GT.0) GOTO 19
       G = FF
@@ -773,17 +788,18 @@ C
       CALL MAT(HHH,SS,IZLURE)
    70 CONTINUE                                                          
       I0 = NDIM * LPARR + KPARR                                         
+c      if(mkc.eq.10) then
+c      write(6,*) 'NSH=',NSH
+c      endif                                                          
       DO 100 M=1,NSH                                                    
       I2 = NSH2(M)                                                      
       C = SH(M) * WERTT(I2)
+c      write(6,*)'mkc:',mkc,'  C = ',SH(M),'*',WERTT(I2)                                                 
       IF (C.EQ.0.) GOTO 100                                             
-      I1 = NSH1(M) + I0                                                 
+      I1 = NSH1(M) + I0
       DMM(I1) = DMM(I1) + C
   100 CONTINUE                                                          
   170 CONTINUE
-C      if(mkc.eq.10) then
-C      write(6,*) 'MKC=',MKC,' i0=',i0
-C      endif                                                          
       RETURN                                                            
       END                                                               
       SUBROUTINE HAUPT                                                  
@@ -853,8 +869,15 @@ C
       MM = JQ(K)                                                        
       SIG = HHH(N)                                                      
       IF(MM.EQ.0) GOTO 6
+
+      
       DO 2   M = 1,MM                                                   
       MN = MVK(M,K)                                                     
+
+      if(mkc.eq.10)then
+      write(6,*) 'MVK: ',MN
+      endif      
+
     2 SIG = SIG*S(MN)                                                   
 6     M1 = KVK(K)                                                       
       WERTT(M1) = WERTT(M1) + EPO(K) * SIG
