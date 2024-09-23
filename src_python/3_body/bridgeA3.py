@@ -99,6 +99,15 @@ class A3settings:
     useV3B = (tnni == 11)
     parallel = -1  # use -1 in some of the input files: horrible!
 
+    # the initial population is bred in chunks of length <civ_size> and *not* as
+    # one large set in order to limit the number of parallel threads to be manageable
+    civ_size = 15
+    # number of bases comprising a generation
+    civ_size_max = 25
+
+    # number of children to replace an equal number of old-generation members
+    anzNewBV = 6
+
     nnPotLabel = 'AV18'  #'nn_pot'  #pot_nn_06'  #'BONN'  #AV4.14'
     nnPotFile = jobDirectory + '/../../data/%s' % nnPotLabel
     nnnPotLabel = 'urbana9_AK_neu'  #'nnn_pot'  #'pot_nnn_06'  #
@@ -108,26 +117,26 @@ class A3settings:
     channels = {
         # helion
         'pnn0.5^+': [
-            ['000', ['t_no1', 't_no6', 't_no1', 't_no6']],  # 1,2
-            ['022', ['t_no2', 't_no2']],  # 3
-            ['202', ['t_no2', 't_no2']],  # 4
+            ['000', ['t_no1', 't_no6']],  # 1,2
+            ['022', ['t_no2']],  # 3
+            ['202', ['t_no2']],  # 4
             ['111', ['t_no3', 't_no5']],  # 5,6
             ['112', ['t_no5']],  # 7
             ['220', ['t_no1', 't_no6']],  # 8,9
             ['221', ['t_no1', 't_no2', 't_no6']],  # 10,11,12
             ['222', ['t_no2']],  # 13
         ],
-        #          [l1l2L,[compatible (iso)spin configurations]]
+        #          [l1l2L,[compatible (iso)spiqn configurations]]
         '0.5^-': [
-            ['011', ['t_no1', 't_no6', 't_no1', 't_no6']],
+            ['011', ['t_no1', 't_no2']],
             ['101', ['t_no3']],
-            ['211', ['t_no1', 't_no2', 't_no6']],
+            ['211', ['t_no1', 't_no2']],
             ['212', ['t_no2']],
             ['121', ['t_no3', 't_no5']],
             ['122', ['t_no5']],
         ],
         '1.5^-': [
-            ['011', ['t_no1', 't_no2', 't_no6', 't_no1']],
+            ['011', ['t_no1', 't_no2', 't_no6']],
             ['101', ['t_no3']],
             ['211', ['t_no1', 't_no2', 't_no6']],
             ['212', ['t_no2']],
@@ -137,7 +146,7 @@ class A3settings:
         ]
     }
 
-    ScatteringChannels = ['0.5^-', '1.5^-']
+    ScatteringChannels = ['0.5^-']  #, '1.5^-']
     #                  realistic    L>0 (only)         deuteron
     boundstateChannel = 'pnn0.5^+'
 
@@ -160,12 +169,12 @@ class A3settings:
     maximalNoGaussWidths = 45
     #-------------------------- used in PSI_parallel_M.py  -------------------
     # minimal distance allowed for between width parameters
-    minDistanceWidth = 0.2
+    minDistanceWidth = 0.00002
     # lower bound for width parameters '=' IR cutoff (broadest state)
-    lowerboundWidth = 0.0001
+    lowerboundWidth = 0.000001
     # orbital-angular-momentum dependent upper bound '=' UV cutoff (narrowest state)
-    upperboundWidthiL = [22., 7., 6.]
-    upperboundWidthiR = [22., 7., 6.]
+    upperboundWidthiL = [322., 117., 136.]
+    upperboundWidthiR = [322., 117., 136.]
     psiChannelLabels = ['t_no1', 't_no2', 't_no3', 't_no5', 't_no6']
     psiChannels = [
         '000',

@@ -43,11 +43,11 @@ def blunt_ev(set,
     n3_inob(sfrag, 8, fn='INOB', indep=set.parallel)
     #os.system(bin_path + 'KOBER.exe')
     run_external(binaryPath + 'KOBER.exe')
-    he3inquaBS(intwi=intws, relwi=relws, potf=NNpotName, inquaout='INQUA_M_0')
+    he3inquaN(intwi=intws, relwi=relws, potf=NNpotName, inquaout='INQUA_N_0')
     parallel_mod_of_3inqua(lfrag,
                            sfrag,
-                           infile='INQUA_M_0',
-                           outFileNm='INQUA_M',
+                           infile='INQUA_N_0',
+                           outFileNm='INQUA_N',
                            single_path=singleFilePath)
     n3_inen_bdg(basis,
                 angMomentum,
@@ -64,14 +64,14 @@ def blunt_ev(set,
             mpiPath,
             '-np',
             '%d' % NoProcessors,
-            binaryPath + 'V18_PAR/mpi_quaf_v7'
+            binaryPath + 'V18_PAR/mpi_quaf_n_v18-uix'
         ])
         subprocess.run([binaryPath + 'V18_PAR/sammel'])
         #subprocess.call('rm -rf DMOUT.*', shell=True)
         for filename in glob.glob("DMOUT.*"):
             os.remove(filename)
     else:
-        subprocess.run([binaryPath + 'QUAFL_M.exe'])
+        subprocess.run([binaryPath + 'QUAFL_N.exe'])
     if potChoice == 11:
         n3_inlu(8, fn='INLU', fr=lfrag, indep=set.parallel)
         #os.system(bin_path + 'DRLUD.exe')
@@ -79,14 +79,14 @@ def blunt_ev(set,
         n3_inob(sfrag, 15, fn='INOB', indep=set.parallel)
         #os.system(bin_path + 'DROBER.exe')
         run_external(binaryPath + 'DROBER.exe')
-        he3inquaBS(intwi=intws,
-                   relwi=relws,
-                   potf=NNNpotName,
-                   inquaout='INQUA_M_0')
+        he3inquaN(intwi=intws,
+                  relwi=relws,
+                  potf=NNNpotName,
+                  inquaout='INQUA_N_0')
         parallel_mod_of_3inqua(lfrag,
                                sfrag,
-                               infile='INQUA_M_0',
-                               outFileNm='INQUA_M',
+                               infile='INQUA_N_0',
+                               outFileNm='INQUA_N',
                                tni=1,
                                single_path=singleFilePath)
         if set.parallel == -1:
@@ -96,7 +96,7 @@ def blunt_ev(set,
                 mpiPath,
                 '-np',
                 '%d' % NoProcessors,
-                binaryPath + 'UIX_PAR/mpi_drqua_v7'
+                binaryPath + 'UIX_PAR/mpi_drqua_n_v18-uix'
             ])
             subprocess.run([binaryPath + 'UIX_PAR/SAMMEL-uix'])
             #subprocess.call('rm -rf DRDMOUT.*', shell=True)
@@ -106,7 +106,7 @@ def blunt_ev(set,
             #               capture_output=True,
             #               text=True)
         else:
-            subprocess.run([binaryPath + 'DRQUA_AK_M.exe'])
+            subprocess.run([binaryPath + 'DRQUA_AK_N.exe'])
             subprocess.run([binaryPath + 'DR2END_AK.exe'])
     elif potChoice == 10:
         if set.parallel == -1:
@@ -121,7 +121,7 @@ def blunt_ev(set,
     return NormHam
 
 
-def smart_ev(matout, threshold=1e-7):
+def smart_ev_niels(matout, threshold=1e-7):
     dim = int(np.sqrt(len(matout) * 0.5))
     # read Norm and Hamilton matrices
     normat = np.reshape(np.array(matout[:dim**2]).astype(float), (dim, dim))
@@ -153,6 +153,74 @@ def smart_ev(matout, threshold=1e-7):
     #print('(stable) Eigenbasisdim = %d(%d)' % (dimRed, dim))
     #return the ordered eigenvalues
     return ewGood, normCond
+
+
+def smart_ev(matout, threshold=10**-7):
+
+    dim = int(np.sqrt(len(matout) * 0.5))
+
+    # read Norm and Hamilton matrices
+    normat = np.reshape(np.array(matout[:dim**2]).astype(float), (dim, dim))
+    hammat = np.reshape(np.array(matout[dim**2:]).astype(float), (dim, dim))
+
+    # obtain naively the ratio between the smallest and largest superposition
+    # coefficient in the expansion of the ground state; use this as an additional
+    # quality measure for the basis
+    gsCoeffRatio = 42.1
+    try:
+
+        ewn, evn = eigh(normat)
+        idxn = ewn.argsort()[::-1]
+        ewn = [eww for eww in ewn[idxn]]
+        normCond = np.abs(ewn[-1] / ewn[0]) if np.any(
+            np.array(ewn) < 0) == False else -1.0
+        ewt, evt = eigh(hammat, normat)
+        idxt = ewt.argsort()[::-1]
+        ewt = [eww for eww in ewt[idxt]]
+        evt = evt[:, idxt]
+        gsC = np.abs(evt[:, -1])
+        gsCoeffRatio = np.max(gsC) / np.min(gsC)
+
+    except:
+        gsCoeffRatio = 10**8
+        normCond = -1.0
+
+    # normalize the matrices with the Norm's diagonal
+    normdiag = [normat[n, n] for n in range(dim)]
+    umnorm = np.diag(1. / np.sqrt(normdiag))
+    nm = np.dot(np.dot(np.transpose(umnorm), normat), umnorm)
+    hm = np.dot(np.dot(np.transpose(umnorm), hammat), umnorm)
+
+    # diagonalize normalized norm (using "eigh(ermitian)" to speed-up the computation)
+    ew, ev = eigh(nm)
+    #ew, ev = LA.eigh(nm)
+    idx = ew.argsort()[::-1]
+    ew = [eww for eww in ew[idx]]
+
+    # project onto subspace with ev > threshold
+    ew = [eww for eww in ew if np.real(eww) > threshold]
+    dimRed = len(ew)
+    ev = ev[:, idx][:, :dimRed]
+
+    # transormation matric for (H-E*N)PSI=0 such that N->id
+    Omat = np.dot(ev, np.diag(1. / np.sqrt(ew)))
+
+    # diagonalize the projected Hamiltonian (using "eigh(ermitian)" to speed-up the computation)
+    Hgood = np.dot(np.dot(np.transpose(Omat), hm), Omat)
+    #ewGood, evGood = LA.eigh(Hgood)
+    ewGood, evGood = eigh(Hgood)
+
+    idx = ewGood.argsort()[::-1]
+    ewGood = [eww for eww in ewGood[idx]]
+    evGood = evGood[:, idx]
+
+    #ewt, evt = eigh(hammat, normat)
+    #idxt = ewt.argsort()[::-1]
+    #ewt = [eww for eww in ewt[idxt]]
+    #evt = evt[:, idxt]
+    #print('(stable) Eigenbasisdim = %d(%d)' % (dimRed, dim))
+    #return the ordered eigenvalues
+    return ewGood, normCond, gsCoeffRatio
 
 
 def NormHamDiag(matout, threshold=1e-7):
@@ -228,8 +296,11 @@ def endmat(para, send_end):
             bvv for bvv in smartEV
             if denseEVinterval[0] < bvv < denseEVinterval[1]
         ])
+
+        EnergySet = [smartEV[ii] for ii in range(cntSignificantEV)]
         gsEnergy = smartEV[-1]
-        attractiveness = loveliness(gsEnergy, basCond, cntSignificantEV,
+
+        attractiveness = loveliness(EnergySet, basCond, cntSignificantEV,
                                     minCond)
         #        dim = int(np.sqrt(len(NormHam) * 0.5))
         #

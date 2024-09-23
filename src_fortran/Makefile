@@ -1,5 +1,5 @@
 F77     =       ifx #gfortran #
-FFLAGS  =       -Ofast -mcmodel=medium #-fallow-argument-mismatch # -ffpe-summary='none' 
+FFLAGS  =       -Ofast -mcmodel=medium -fpp -DBG=0 #-fallow-argument-mismatch # -ffpe-summary='none' 
 LIBS    = -L${MKLROOT} -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 #-L -lgfortran 
 
 # ohne -g und -traceback erzeugt spoleinv runtime error in smatest,rrandb subroutinen wenn auf die variable nbess zugegriffen wird;

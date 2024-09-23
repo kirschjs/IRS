@@ -2,64 +2,51 @@ import numpy as np
 import struct
 import copy
 from settings import *
+"""
+
+the loveliness function steers the basis optimization
+optimal basis:
+1) converged values for a selected number of eigenvalues *within*
+   the model space limited by the chusen dimension
+2) numerically stable => condition number > numerical accuracy (at least)
+                         norm must be positive definite
+3) (optional=relevance unclear) basis comprises mostly states which have
+   significant overlap with the states of interest (see (1))
+
+"""
 
 
-def loveliness(groundstateEnergy, conditionNumber, HeigenvaluesbelowX,
+def loveliness(relEnergyVals, conditionNumber, HeigenvaluesbelowX,
                minimalConditionnumber):
 
-    #    return HeigenvaluesbelowX**4 * np.abs(groundstateEnergy)**8 / np.abs(
-    #        np.log(conditionNumber))**1
+    maxEsum = 1e5
+    energySum = sum([np.exp(-0.1 * ev) for ev in relEnergyVals])
 
-    return HeigenvaluesbelowX**4 * np.abs(groundstateEnergy)**8 / np.abs(
-        np.log(conditionNumber))**1
+    if (conditionNumber
+            > minimalConditionnumber):  #((np.abs(energySum) < maxEsum) &
+
+        # "normalize" quantities
+        cF = minimalConditionnumber / conditionNumber  # the smaller the better
+        eF = energySum / maxEsum  # the closer to -1 the better
+        #print('(ECCE) mind the lovely!')
+        pulchritude = eF * (
+            np.sqrt(np.log(1.1 + 1.0 * HeigenvaluesbelowX))
+        )  #np.tan(np.exp(-0.62 * eF))  #* np.exp(-0.03 * cF**2)
+
+    else:
+        pulchritude = 0.0
+
+    return pulchritude
 
 
-def basQ(normSpectrum,
-         hamiltonianSpectrum,
-         minCond=1e-10,
-         denseEnergyInterval=[5, 120]):
-    numberOfSignificantEV = len(
-        [bvv for bvv in hamiltonianSpectrum if bvv < denseEnergyInterval[1]])
-    gsEnergy = hamiltonianSpectrum[-1]
-    basCond = np.min(np.abs(normSpectrum)) / np.max(np.abs(normSpectrum))
-    attractiveness = loveliness(gsEnergy, basCond, numberOfSignificantEV,
-                                minCond)
-    return attractiveness, basCond
-
-
-def breed_offspring(iws, rws, parentBVs=[], chpa=[1, 1]):
-    numberOfBV = len(sum(sum(rws, []), []))
-    cand = np.random.choice(np.arange(1, 1 + numberOfBV),
-                            (1,
-                             2)).tolist()[0] if parentBVs == [] else parentBVs
-    cf = []
-    for bv in cand:
-        ws = 0
-        for cfg in range(len(iws)):
-            for nbv in range(len(iws[cfg])):
-                for rw in range(len(rws[cfg][nbv])):
-                    ws += 1
-                    if ws == bv:
-                        cf.append(cfg)
-    mw = retr_widths(cand[0], iws, rws)
-    fw = retr_widths(cand[1], iws, rws)
-    try:
-        chint = intertwining(mw[0], fw[0], mutation_rate=0.1)
-        chrel = intertwining(mw[1], fw[1], mutation_rate=0.1)
-    except:
-        print("intertwining failed", file=sys.stderr)
-        print(cand[0])
-        print(cand[1])
-        exit(-1)
-    c0 = [
-        chint[0] * chpa[0] + mw[0] * (1 - chpa[0]),
-        chrel[0] * chpa[1] + mw[1] * (1 - chpa[1]), cf[0]
-    ]
-    c1 = [
-        chint[1] * chpa[0] + fw[0] * (1 - chpa[0]),
-        chrel[1] * chpa[1] + fw[1] * (1 - chpa[1]), cf[1]
-    ]
-    return [c0, c1]
+#def loveliness(groundstateEnergy, conditionNumber, HeigenvaluesbelowX,
+#               minimalConditionnumber):
+#
+#    #    return HeigenvaluesbelowX**4 * np.abs(groundstateEnergy)**8 / np.abs(
+#    #        np.log(conditionNumber))**1
+#
+#    return HeigenvaluesbelowX**4 * np.abs(groundstateEnergy)**8 / np.abs(
+#        np.log(conditionNumber))**1
 
 
 def retr_widths(bvNbr, iws, rws):
@@ -205,46 +192,52 @@ def write_basis_on_tape(basis, jay, btype, baspath=''):
         f.seek(NEWLINE_SIZE_IN_BYTES, 2)
         f.truncate()
     f.close()
+
     path_intw = baspath + 'Sintw3heLIT_%s.dat' % btype
     if os.path.exists(path_intw): os.remove(path_intw)
     with open(path_intw, 'wb') as f:
-        for ws in basis[1]:
-            np.savetxt(f, [ws], fmt='%12.6f', delimiter=' ')
+        for ws in basis[1][0]:
+            try:
+                np.savetxt(f, [ws], fmt='%12.6f', delimiter=' ')
+            except:
+                np.savetxt(f, ws, fmt='%12.6f', delimiter=' ')
         f.seek(NEWLINE_SIZE_IN_BYTES, 2)
         f.truncate()
     f.close()
     path_relw = baspath + 'Srelw3heLIT_%s.dat' % btype
     if os.path.exists(path_relw): os.remove(path_relw)
     with open(path_relw, 'wb') as f:
-        for wss in basis[2]:
-            for ws in wss:
+        for ws in basis[1][1]:
+            try:
                 np.savetxt(f, [ws], fmt='%12.6f', delimiter=' ')
+            except:
+                np.savetxt(f, ws, fmt='%12.6f', delimiter=' ')
         f.seek(NEWLINE_SIZE_IN_BYTES, 2)
         f.truncate()
     f.close()
+
     finalstate_indices = []
     bv = 0
     for ncfg in range(len(basis[0])):
-        for nbv in range(len(basis[1][ncfg])):
-            rw = 1
-            bv += 1
-            for nrw in range(len(basis[2][ncfg][nbv])):
-                found = False
-                for basv in range(len(basis[3])):
-                    for basrw in range(len(basis[3][basv][1])):
-                        #print(bv, rw, ' ', basis[3][basv][0],basis[3][basv][1][basrw])
-                        if ((bv == basis[3][basv][0]) &
-                            (rw == basis[3][basv][1][basrw])):
-                            found = True
-                rw += 1
-                if found:
-                    finalstate_indices.append(1)
-                else:
-                    finalstate_indices.append(0)
+        rw = 1
+        bv += 1
+        for nrw in range(len(basis[1][1][ncfg])):
+            found = False
+            for basv in range(len(basis[3])):
+                for basrw in range(len(basis[3][basv][1])):
+                    if ((bv == basis[3][basv][0]) &
+                        (rw == basis[3][basv][1][basrw])):
+                        found = True
+            rw += 1
+            if found:
+                finalstate_indices.append(1)
+            else:
+                finalstate_indices.append(0)
     sigindi = [
         n for n in range(1, 1 + len(finalstate_indices))
         if finalstate_indices[n - 1] == 1
     ]
+
     path_indi = baspath + 'Ssigbasv3heLIT_%s.dat' % btype
     if os.path.exists(path_indi): os.remove(path_indi)
     with open(path_indi, 'wb') as f:
@@ -291,32 +284,148 @@ def bin_to_float(binary):
     return struct.unpack('!f', struct.pack('!I', int(binary, 2)))[0]
 
 
-def intertwining(p1, p2, mutation_rate=0.0, wMin=0.001, wMax=20., dbg=False):
+def intertwining(p1,
+                 p2,
+                 def1,
+                 def2,
+                 mutation_rate=0.0,
+                 wMin=0.00001,
+                 wMax=920.,
+                 dbg=False,
+                 method='1point'):
+
     Bp1 = float_to_bin(p1)
     Bp2 = float_to_bin(p2)
+
+    defaul = False
+
     assert len(Bp1) == len(Bp2)
     assert mutation_rate < 1
+
     mutationMask = np.random.choice(2,
                                     p=[1 - mutation_rate, mutation_rate],
                                     size=len(Bp1))
-    pivot = np.random.randint(0, len(Bp1))
-    Bchild1 = Bp1[:pivot] + Bp2[pivot:]
-    Bchild2 = Bp2[:pivot] + Bp1[pivot:]
-    Bchild2mutated = ''.join(
-        (mutationMask | np.array(list(Bchild2)).astype(int)).astype(str))
-    Bchild1mutated = ''.join(
-        (mutationMask | np.array(list(Bchild1)).astype(int)).astype(str))
-    Fc1 = np.abs(bin_to_float(Bchild1mutated))
-    Fc2 = np.abs(bin_to_float(Bchild2mutated))
-    if (np.isnan(Fc1) | np.isnan(Fc2) | (Fc1 < wMin) | (Fc1 > wMax) |
-        (Fc2 < wMin) | (Fc2 > wMax)):
-        Fc1 = np.random.random() * 12.1
-        Fc2 = np.random.random() * 10.1
+
+    if method == '1point':
+
+        pivot = np.random.randint(0, len(Bp1))
+
+        Bchild1 = Bp1[:pivot] + Bp2[pivot:]
+        Bchild2 = Bp2[:pivot] + Bp1[pivot:]
+
+        Bchild2mutated = ''.join(
+            (mutationMask | np.array(list(Bchild2)).astype(int)).astype(str))
+        Bchild1mutated = ''.join(
+            (mutationMask | np.array(list(Bchild1)).astype(int)).astype(str))
+
+        Fc1 = np.abs(bin_to_float(Bchild1mutated))
+        Fc2 = np.abs(bin_to_float(Bchild2mutated))
+
+        # Check for out-of-range or NaN values
+        # the defaults are drawn from a clipped normal distribution which is
+        # defined for the system the basis is optimized
+        Fc1 = def1 if (np.isnan(Fc1) or Fc1 < wMin or Fc1 > wMax) else Fc1
+        Fc2 = def2 if (np.isnan(Fc2) or Fc2 < wMin or Fc2 > wMax) else Fc2
+
+    elif method == '2point':
+
+        # Determine two pivot points for the multi-point crossover
+        pivot1 = np.random.randint(0, int(len(Bp1) / 2))
+        pivot2 = np.random.randint(pivot1 + 1, len(Bp1))
+
+        # Swap pivot points if pivot2 is less than pivot1
+        if pivot2 < pivot1:
+            pivot1, pivot2 = pivot2, pivot1
+
+        # Perform crossover using the multi-point method
+        Bchild1 = Bp1[:pivot1] + Bp2[pivot1:pivot2] + Bp1[pivot2:]
+        Bchild2 = Bp2[:pivot1] + Bp1[pivot1:pivot2] + Bp2[pivot2:]
+
+        # Apply mutation
+        Bchild1mutated = ''.join(
+            (mutationMask | np.array(list(Bchild1)).astype(int)).astype(str))
+        Bchild2mutated = ''.join(
+            (mutationMask | np.array(list(Bchild2)).astype(int)).astype(str))
+
+        # Convert binary strings to floating-point values
+        Fc1 = np.abs(bin_to_float(Bchild1mutated))
+        Fc2 = np.abs(bin_to_float(Bchild2mutated))
+
+        # Check for out-of-range or NaN values
+        # the defaults are drawn from a clipped normal distribution which is
+        # defined for the system the basis is optimized
+        Fc1 = def1 if (np.isnan(Fc1) or Fc1 < wMin or Fc1 > wMax) else Fc1
+        Fc2 = def2 if (np.isnan(Fc2) or Fc2 < wMin or Fc2 > wMax) else Fc2
+
+    elif method == '4point':
+
+        # Determine four pivot points for the four-point crossover
+        pivot1 = np.random.randint(0, len(Bp1))
+        pivot2 = np.random.randint(pivot1 + 1, len(Bp1))
+        pivot3 = np.random.randint(pivot2 + 1, len(Bp1))
+        pivot4 = np.random.randint(pivot3 + 1, len(Bp1))
+
+        # Perform crossover using the four-point method
+        Bchild1 = Bp1[:pivot1] + Bp2[pivot1:pivot2] + Bp1[pivot2:pivot3] + Bp2[
+            pivot3:pivot4] + Bp1[pivot4:]
+        Bchild2 = Bp2[:pivot1] + Bp1[pivot1:pivot2] + Bp2[pivot2:pivot3] + Bp1[
+            pivot3:pivot4] + Bp2[pivot4:]
+
+        # Apply mutation
+        Bchild1mutated = ''.join(
+            (mutationMask | np.array(list(Bchild1)).astype(int)).astype(str))
+        Bchild2mutated = ''.join(
+            (mutationMask | np.array(list(Bchild2)).astype(int)).astype(str))
+
+        # Convert binary strings to floating-point values
+        Fc1 = np.abs(bin_to_float(Bchild1mutated))
+        Fc2 = np.abs(bin_to_float(Bchild2mutated))
+
+        # Check for out-of-range or NaN values
+        # the defaults are drawn from a clipped normal distribution which is
+        # defined for the system the basis is optimized
+        Fc1 = def1 if (np.isnan(Fc1) or Fc1 < wMin or Fc1 > wMax) else Fc1
+        Fc2 = def2 if (np.isnan(Fc2) or Fc2 < wMin or Fc2 > wMax) else Fc2
+
+    elif method == 'uniform':
+
+        # Perform uniform crossover
+        Bchild1 = ''
+        Bchild2 = ''
+        for i in range(len(Bp1)):
+            if np.random.rand() < 0.5:
+                Bchild1 += Bp1[i]
+                Bchild2 += Bp2[i]
+            else:
+                Bchild1 += Bp2[i]
+                Bchild2 += Bp1[i]
+
+        # Apply mutation
+        Bchild1mutated = ''.join(
+            (mutationMask | np.array(list(Bchild1)).astype(int)).astype(str))
+        Bchild2mutated = ''.join(
+            (mutationMask | np.array(list(Bchild2)).astype(int)).astype(str))
+
+        # Convert binary strings to floating-point values
+        Fc1 = np.abs(bin_to_float(Bchild1mutated))
+        Fc2 = np.abs(bin_to_float(Bchild2mutated))
+
+        # Check for out-of-range or NaN values
+        # the defaults are drawn from a clipped normal distribution which is
+        # defined for the system the basis is optimized
+        Fc1 = def1 if (np.isnan(Fc1) or Fc1 < wMin or Fc1 > wMax) else Fc1
+        Fc2 = def2 if (np.isnan(Fc2) or Fc2 < wMin or Fc2 > wMax) else Fc2
+
+    else:
+        print('unspecified intertwining method.')
+        exit()
+
     if (dbg | np.isnan(Fc1) | np.isnan(Fc2)):
         print('parents (binary)        :%12.4f%12.4f' % (p1, p2))
         print('parents (decimal)       :', Bp1, ';;', Bp2)
         print('children (binary)       :', Bchild1, ';;', Bchild2)
         print('children (decimal)      :%12.4f%12.4f' % (Fc1, Fc2))
+
     return Fc1, Fc2
 
 
@@ -341,6 +450,7 @@ def essentialize_basis(basis, MaxBVsPERcfg=4):
                 tmpBas[2][nCfg][ncBV] = [np.nan]
             ncBV += 1
             nBV += 1
+
     newBas = [[], [], [], []]
     for ncfg in range(len(tmpBas[0])):
         if sum([np.isnan(iw)

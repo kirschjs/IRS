@@ -3,6 +3,22 @@ import numpy as np
 import random
 #from parameters_and_constants import *
 from clg import CG
+"""
+The function
+y(x)=a^(x^base)-b
+has the desired properties y(0)=const.=y(1) while for any x in (0,1) it 
+remains flat for larger "bases"
+"""
+
+
+def logspaceG(start, end, base, number):
+
+    widths = []
+    for pp in np.linspace(0, 1, number):
+        nw = start - 1 + (end - start + 1)**(pp**base)
+        widths.append(nw)
+
+    return widths
 
 
 def polyWidths(wmin=10**-2, wmax=10, nbrw=10, npoly=4):
@@ -66,7 +82,7 @@ def sparse2(inset, relset, mindist=0.1):
 def find_error(ifi='OUTPUT'):
     out = [line for line in open(ifi)]
     for nj in range(1, len(out)):
-        if (out[nj].strip() == "FEHLERHAFT"):
+        if ((out[nj].strip() == "FEHLERHAFT") | ("FALSCH" in out[nj])):
             print("TDR2ENDMAT: DIAGONALISATION FEHLERHAFT")
             exit()
     return
@@ -487,3 +503,44 @@ def determine_struct(inqua='INQUA_N'):
             block_head = block_head + 2 + bvinz + nl + 3 * bvinz
     stru.append(bv_in_scheme)
     return [np.sum(stru[:n]) for n in range(1, len(stru) + 1)]
+
+
+def sortprint(civi, pr=False, ordn=2):
+
+    civi.sort(key=lambda tup: tup[ordn])
+    civi = civi[::-1]
+    if pr:
+        print(
+            '\n        pulchritude   cond. nbr (norm) | eigenvalues to optimize\n-----------------------------------------------------------'
+        )
+
+        for civ in civi:
+            print('%19.5e' % civ[2], end='')
+            print('%19.5e | ' % civ[4], end='')
+            for ee in range(len(civ[3]) - 1):
+                print('%10.5e' % civ[3][ee], end=' ')
+            print('%10.5e' % civ[3][-1])
+        print('-----------------------------------------------------------')
+    return civi
+
+
+def polynomial_sum_weight(nbr, order=1):
+    if order == 1:
+        nor = int(0.5 * nbr * (nbr + 1))
+        p = [n / nor for n in range(nbr + 1)]
+    elif order == 2:
+        nor = int(nbr * (nbr + 1) * (2 * nbr + 1) / 6)
+        p = [n**2 / nor for n in range(nbr + 1)]
+    elif order == 3:
+        nor = int(0.25 * nbr**2 * (nbr + 1)**2)
+        p = [n**3 / nor for n in range(nbr + 1)]
+    elif order == 4:
+        nor = int(nbr * (nbr + 1) * (2 * nbr + 1) *
+                  (3 * nbr**2 + 3 * nbr - 1) / 30)
+        p = [n**4 / nor for n in range(nbr + 1)]
+    else:
+        print("(polynomial sum weight) no implementation for this order!")
+        exit()
+
+    #print('weights: ', p, sum(p))
+    return p

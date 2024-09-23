@@ -740,7 +740,7 @@ def lit_3inen(BUECO,
     return
 
 
-def he3inqua(intwi=[], relwi=[], potf=''):
+def he3inquaN(intwi=[], relwi=[], potf='', inquaout='INQUA_N'):
     s = ''
     # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
     s += ' 10  8  9  3 00  0  0  0  0\n%s\n' % potf
@@ -768,7 +768,7 @@ def he3inqua(intwi=[], relwi=[], potf=''):
             s += '1.'.rjust(12 * (bb % 6 + 1))
             for ii in range(int(tmpln - int(bb / 6))):
                 s += '\n'
-    with open('INQUA_N', 'w') as outfile:
+    with open(inquaout, 'w') as outfile:
         outfile.write(s)
     return
 

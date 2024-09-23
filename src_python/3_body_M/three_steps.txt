@@ -1,0 +1,15 @@
+### for a testrun, do the following:
+
+i)  generate helion basis: python3 ./NextToNewestGeneration.py <out_DIR> <nbr_of_processorcores> -1 1
+
+=> mm-postprocessing files are stored in: '/scratch/compton_IRS/out_DIR/results'
+=> '/tmp/out_DIR' is created anew for each run; preexisting folders are *deleted*
+
+ii) generate a pair of final-state bases: python3 ./NextToNewestGeneration.py <out_DIR> <nbr_of_processorcores> 1 2
+
+=> mm-postprocessing files are added to: '/scratch/compton_IRS/out_DIR/results'
+=> '/tmp/out_DIR' is created anew for each run; preexisting folders are *deleted*
+
+ii)  run: python3 A3_lit_M.py <out_DIR> <nbr_of_processorcores> <1st fs scenario> <last fs scenario>
+
+iii) post process the output in ~/scratch/compton_IRS/out_DIR/results using the pertinent mm notebook

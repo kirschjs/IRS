@@ -13,6 +13,7 @@ from genetic_width_growth import *
 from PSI_parallel_M import span_initial_basis
 from settings import *
 from smart_diag import *
+from scipy.stats import truncnorm, norm
 
 print('>>>>>>>>> start of NextToNewestGeneration.py')
 
@@ -80,12 +81,14 @@ for basisType in basisTypes:
     #  "realistic/test" setting  [8, 20, 8, 24]/[5, 4, 7, 4]
     # if you dare to exceed the 'realistic' dimensions, check and increase slightly NDIM in par.h
     # in src_fortran/UIX and src_fortran/V18 and possibly also in src_fortran/par/(DR)QUAF
-    initialDimensions = [6, 7, 4, 6]
+    initialDimensions = [6, 6, 10, 4]
 
     # lower and upper bounds for the grids from which the initial seed state is taken
     # 1-4: initial state, 1-2(jacobi1), 3-4(jacobi2)
     # 5-8: final   states,5-6(jacobi1), 7-8(jacobi2)
-    initialGridBounds = [0.2, 22.25, 0.001, 22.5, 0.01, 2.25, 0.0001, 2.5]
+    initialGridBounds = [
+        0.0002, 22.25, 0.0001, 22.5, 0.001, 16.25, 0.001, 18.5
+    ]
 
     jValue = float(basisType.split('^')[0][-3:])
     jString = '%s' % str(jValue)[:3]
@@ -132,14 +135,27 @@ for basisType in basisTypes:
     ] if basisType == set.boundstateChannel else [-3., 80.0]
     removalGainFactor = 1.05
     maxOnPurge = 113
-    maxOnTrail = 43
-    muta_initial = 0.01
+    maxOnTrail = 42
+    muta_initial = 0.03
+
+    # set of width parameters which is Gaussian-clipped distributed
+    # if the crossover yields unacceptable offspring width parameters,
+    # the intertwining function resorts to a drawing from this set
+    loc, scale = 1.3, 100.5
+    a_transformed, b_transformed = (initialGridBounds[0] - loc) / scale, (
+        initialGridBounds[1] - loc) / scale
+    rv = truncnorm(a_transformed, b_transformed, loc=loc, scale=scale)
+    x = np.linspace(
+        truncnorm.ppf(0.01, initialGridBounds[0], initialGridBounds[1]),
+        truncnorm.ppf(1, initialGridBounds[0], initialGridBounds[1]), 100)
+
+    r = rv.rvs(size=10000)
 
     deuteronBindingEnergy = 2.224
     tritonBindingEnergy = 8.482
     he3BindingEnergy = 7.72
     # get the initial, random basis seed to yield thresholds close to the results in a complete basis
-    channelThreshold = -6.0 if basisType == set.boundstateChannel else -1.4
+    channelThreshold = -6.0 if basisType == set.boundstateChannel else -0.24
     CgfCycles = 1
     # nRaces := |i|
     nRaces = 1 if basisType == set.boundstateChannel else 1
@@ -182,10 +198,13 @@ for basisType in basisTypes:
                 bvv for bvv in smartEV
                 if targetEVinterval[0] < bvv < targetEVinterval[1]
             ])
+
+            EnergySet = [smartEV[ii] for ii in range(cntSignificantEV)]
             groundstateEnergy = smartEV[-1]
-            attractiveness = loveliness(groundstateEnergy, basCond,
-                                        cntSignificantEV,
+
+            attractiveness = loveliness(EnergySet, basCond, cntSignificantEV,
                                         minimalConditionNumber)
+
             print(
                 '\n> basType %s > basSet %d/%d: seed basis: E0 = %f   cond=|Emin|/|Emax| = %e'
                 % (basisType, basisNo + 1, NumberOfScatteringBasisFunctions,
@@ -198,6 +217,7 @@ for basisType in basisTypes:
                     % channelThreshold)
 
                 continue
+
             cfgs = [
                 con.split()
                 for con in open(basisPath + 'frags_LIT_%s.dat' % basisType)
@@ -409,12 +429,16 @@ for basisType in basisTypes:
                 else:
                     unis.append(initialCiv[0][ncfg])
 
-            print(unis, unisA)
+            print('unique CFGs (post-purge): ', unis,
+                  '\nunique CFGs ( pre-purge): ', unisA)
             if len(unis) != len(unisA):
                 print(
                     'Elemental cfg of the seed was removed entirely during purge.\n new round of sowing.'
                 )
                 groundstateEnergy = 42.0
+
+        print(initialCiv)
+        exit()
 
         # > nState > nBasis > optimize each orb-ang, spin-iso cfg in a number of cycles
         for nCgfCycle in range(CgfCycles):
@@ -473,6 +497,9 @@ for basisType in basisTypes:
                             offspringI.append(
                                 intertwining(motherI,
                                              fatherI,
+                                             def1=rv.rvs(),
+                                             def2=rv.rvs(),
+                                             method='1point',
                                              mutation_rate=muta_initial))
                             for nrw in range(
                                     np.min([len(pa) for pa in parentRWs])):
@@ -487,6 +514,9 @@ for basisType in basisTypes:
                                 offspringR.append(
                                     intertwining(motherR,
                                                  fatherR,
+                                                 def1=rv.rvs(),
+                                                 def2=rv.rvs(),
+                                                 method='1point',
                                                  mutation_rate=muta_initial))
 
                             rw1 = list(np.array(offspringR)[:, 1])
@@ -510,8 +540,11 @@ for basisType in basisTypes:
                     offspringI = list(np.array(offspringI).flatten())
                     offspringI.sort()
                     offspringI = offspringI[::-1]
+                    #print('\n\n', Ais)
                     Ais[1].append(offspringI)
                     Ais[0].append(unis[nUcfg])
+                    #print('\n\n', Ais)
+
                     Ais = essentialize_basis(
                         Ais, MaxBVsPERcfg=set.basisVectorsPerBlock)
 
@@ -577,10 +610,13 @@ for basisType in basisTypes:
                         bvv for bvv in smartEV
                         if targetEVinterval[0] < bvv < targetEVinterval[1]
                     ])
+
+                    EnergySet = [smartEV[ii] for ii in range(cntSignificantEV)]
                     groundstateEnergy = smartEV[-1]
-                    parLove = loveliness(groundstateEnergy, parCond,
-                                         cntSignificantEV,
+
+                    parLove = loveliness(EnergySet, basCond, cntSignificantEV,
                                          minimalConditionNumber)
+
                     print(
                         'reference for the new gen: Dim(parents+offspring) = %d; parents: B(GS) = %8.4f  C-nbr = %4.3e  fitness = %4.3e'
                         % (basisDim(
@@ -815,8 +851,11 @@ for basisType in basisTypes:
             bvv for bvv in smartEV
             if targetEVinterval[0] < bvv < targetEVinterval[1]
         ])
+
+        EnergySet = [smartEV[ii] for ii in range(cntSignificantEV)]
         groundstateEnergy = smartEV[-1]
-        optLove = loveliness(groundstateEnergy, parCond, cntSignificantEV,
+
+        optLove = loveliness(EnergySet, basCond, cntSignificantEV,
                              minimalConditionNumber)
 
         print(

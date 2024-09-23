@@ -17,10 +17,16 @@ CFLAGS      = -o $@ $? $(PRECFLAGS)
 clean:
 	rm -f *.o core
 
+
+mpi_drqua_n_v18-uix.o:  mpi_drqua_n_v18-uix.F  par.h Makefile
+
+mpi_drqua_n_v18-uix: mpi_drqua_n_v18-uix.o
+	$(F77) $(FFLAGS)  -o mpi_drqua_n_v18-uix mpi_drqua_n_v18-uix.o $(LIBS) $(MPI)
+
 mpi_drqua_v7: mpi_drqua_v7.o
 	$(F77) $(FFLAGS) -o mpi_drqua_v7 mpi_drqua_v7.o $(LIBS) $(MPI)
 
 SAMMEL-uix: SAMMEL-uix.o  par.h
 	$(F77) $(FOPTS) -o $@ SAMMEL-uix.o $(LIBS)
 
-all: mpi_drqua_v7 SAMMEL-uix clean
+all: mpi_drqua_v7 mpi_drqua_n_v18-uix SAMMEL-uix clean

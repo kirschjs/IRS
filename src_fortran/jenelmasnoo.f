@@ -101,7 +101,7 @@ C
       DO 199 I=2,99 
       HMH=I
   199 D(I+1)=LOG( HMH)+D(I) 
-      WRITE(NOUT,1003) 
+
       READ(INPUT,1002) NBAND1,IGAK,KAUSD,KEIND ,IDUM
 C  BEI IGAK=1,2,3 WIRD UEBERGABE VON QUELMA AUSGEDRUCKT 
 C  BEI KAUSD=2 WERDEN UNNORMIERTE MATRIXELEMENTE, 
@@ -118,7 +118,6 @@ C
       ENDIF
 c             
       READ(INPUT,1013) (GEFAK(K),K=1,4) 
-      WRITE (NOUT,1013) (GEFAK(K) ,K=1,4)
 1013  FORMAT(4F12.4)
       GEFAK(1) = 1.
       DO 114 K=2,5,2
@@ -136,7 +135,7 @@ C
       REWIND NBAND2 
       READ(NBAND1)NZF,MUL,(LREG(K),K=1,NZOPER),NZBASV,(NZRHO(K),K=1,NZF)
        IF(NZBASV.GT.NZBMAX)  GOTO 808
-      WRITE(NOUT,1010) MUL,(MREG(K),K=1,NZOPER)
+
 1010  FORMAT(1X,'L = ',I2,' - OPERATOREN',11I3) 
       DO 1 N=1,NZBASV 
       READ(NBAND1) MM,(MMASSE(J,N),J=1,2),(MMLAD(J,N),J=1,2), 
@@ -147,7 +146,7 @@ C
      1     (MMS(J,N),J=1,3),(MLWERT(J,N),J=1,5),KPB(N)
   196 FORMAT(/I6/2(I6,I3),I6,2I3,I6,4I3,I6) 
     1 CONTINUE
-      WRITE(NOUT,1003) 
+
       READ(INPUT,1002)JWSL,JWSR,JWSLM,MULM 
 
 C    L=STREU,  R=BIND
@@ -217,10 +216,11 @@ C        NTI = 1 if 1<=MKC<=11
       READ (NBAND) NUML,NUMR,IK1,JK1,
      *       ((DNN(K,L),K=1,IK1),L=1,JK1)
 C     * (IDUMMY,DNN(K,L,J),J=1,LL1),L=1,JK1),K=1,IK1)     
+#ifdef DBG
       write(6,*)'MKC=',MKC
       write(6,'(A13,5I4)') '(from qual): ',NUML,NUMR,IK1,JK1
       write(6,'(2E24.8)') ((DNN(K,L),K=1,IK1),L=1,JK1)
-
+#endif
           NZREL(MFL) = IK1
           NZREL(MFR) = JK1
 
@@ -256,10 +256,12 @@ c lines 3,4: Clebsch from WE theorem (reduced ME)
      2  *CLG(INT(2*GJR),INT(2*AK),INT(2*GJL),
      3      INT(2*(GJLM-AKM)),INT(2*AKM))
 
+#ifdef DBG
       write(nout,*) SQRT(JWSR+1.),SQRT(MUL2+1.)
      1  ,F9J(LBL2,LBR2,IORANK2,ML,MR,ISRANK2,JWSL,JWSR,MUL2)
      2  ,CLG(INT(2*GJR),INT(2*AK),INT(2*GJL),
      3      INT(2*(GJLM-AKM)),INT(2*AKM))
+#endif
 
 C      FK1new = F9J(LBL2,LBR2,IORANK2,ML,MR,ISRANK2,JWSL,JWSR,MUL2)
 C     2  *CLG(INT(2*GJR),INT(2*AK),INT(2*GJL),
@@ -303,25 +305,24 @@ C  for F1 <J'|L|J> + F2 <J|L|J'>
 C     ALLE OPERATOREN
 C                 = hbarc/mn for siegert proton      
       F1=FK1new*GEFAK(MKC)*FPAR
+#ifdef DBG
       write(6,'(A30,5F12.8,I3/)')'F1,F,FK1new,GEFAK(MKC),FPAR,MKC',
      *           F1,F,FK1new,GEFAK(MKC),FPAR,MKC
+#endif
       DO 458 K=1,IK1
       DO 458 L=1,JK1
       if(MKC.ne.1) then        
       DNN(K,L) = F1*DNN(K,L)
       ELSE
+#ifdef DBG      
       write(nout,*)'nf=',F1
+#endif      
       DNN(K,L) = F1*DNN(K,L)
 C      DNN(K,L) = 0.5*F1*DNN(K,L)      
       endif
-C     AUSDRUCK DER OP-WERTE UND DER K-POTENZ LAMBDA
+#ifdef DBG
       write(nout,'(A13,F8.4,3I3)')'(ecce) DNN = ',DNN(K,L),K,L
-C      IF(IGAK.gt.-1) then
-C      WRITE(6,'(A42,7I3,3F24.8)') 
-C     *         'MFL,MFR,MKC,NBVL,NBVR,K,L,F1,DNN: ',
-C     *           MFL,MFR,MKC,NBVL,NBVR,K,L,
-C     *           F1,DNN(K,L)
-C      endif
+#endif
   458 CONTINUE
 C 
       DO 459 K=1,IK1
@@ -377,11 +378,11 @@ C     ENDE LOOP ZERLEGUNGEN RECHTS
   139 CONTINUE
 C     ENDE LOOP ZERLEGUNGEN LINKS
   140 CONTINUE
-
-C      write(nout,*) 'norm_diag -start',NCOL,NROW    
-C      write(nout,*) (DM(L,L,1),L=1,NROW-1 )
-C      write(nout,*) 'norm_diag -end'
-
+#ifdef DBG
+      write(nout,*) 'norm_diag -start',NCOL,NROW    
+      write(nout,*) (DM(L,L,1),L=1,NROW-1 )
+      write(nout,*) 'norm_diag -end'
+#endif
 C  DM(K,L,10) <-> proton
 C  DM(K,L,11) <-> neutron  (see jump labels 114-117 in jobelmanoo.f)
 
@@ -391,14 +392,14 @@ C  DM(K,L,11) <-> neutron  (see jump labels 114-117 in jobelmanoo.f)
 
       write(NBAND2) ((DM(K,L,1),L=1,NCOL-1 ),K=1,NROW-1 )
       write(19,'(F20.12)') ((DM(K,L,1),L=1,NCOL-1 ),K=1,NROW-1 )
-
+#ifdef DBG
       write(nout,*)'op-me'
       WRITE(nout,'(F30.10)')
      *   (( DM(K,L,10)/SQRT(DM(L,L,1)*DM(K,K,1))      
      *   ,L=1,NCOL-1 ),K=1,NROW-1 )
       write(nout,*)'norm-me'
       write(nout,'(F30.10)') ((DM(K,L,1),L=1,NCOL-1 ),K=1,NROW-1 )      
-
+#endif
 C      if(DM(K,L,10).ne.0) then
 C      write(nout,*)'non-zero MEs'
 C      WRITE(nout,*)
