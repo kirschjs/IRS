@@ -1,7 +1,7 @@
 """
 (i)   optimize initial-state basis (3-body: helion)
 """
-python3 ./NextToNewestGeneration.py <out_DIR> <nbr_of_processorcores> -1 1
+python3 ./TheNextGeneration.py <out_DIR> <nbr_of_processorcores> -1 1
 
 
 
@@ -11,7 +11,7 @@ python3 ./NextToNewestGeneration.py <out_DIR> <nbr_of_processorcores> -1 1
       ecce: to avoid the transfer of a large amount of data, exchange the content of <out_DIR>/results
                after this stage and run (iii) and (iv) wherever you are.
 """
-python3 ./NextToNewestGeneration.py <out_DIR> <nbr_of_processorcores> <idx_of_first_basis-scenario> <idx_of_last_basis-scenario>
+python3 ./TheNextGeneration.py <out_DIR> <nbr_of_processorcores> <idx_of_first_basis-scenario> <idx_of_last_basis-scenario>
 
 
 
