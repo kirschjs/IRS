@@ -28,7 +28,7 @@ set = A3settings(uniqueDirectory=uniqueDirectory,
 
 dbg = True
 with open(set.resultsDirectory + 'dtype.dat', 'w') as outputFile:
-    outputFile.write(dt)
+    outputFile.write(numeric_format)
 
 #os.chdir(set.litpath3He)
 
@@ -45,15 +45,15 @@ try:
     # for par_run.py operation
     ScatteringBasis = np.arange(int(argumentList[3]), int(argumentList[4]) + 1)
     NumberOfScatteringBasisFunctions = len(ScatteringBasis)
-    basisTypes = [set.boundstateChannel] if int(
+    basisTypes = [set.initialChannel] if int(
         argumentList[3]) < 0 else set.ScatteringChannels
 except IndexError:
     # for manual operation
     NumberOfScatteringBasisFunctions = 1
     ScatteringBasis = np.arange(1, NumberOfScatteringBasisFunctions + 1)
-    basisTypes = [set.boundstateChannel] + set.ScatteringChannels  #
+    basisTypes = [set.initialChannel] + set.ScatteringChannels  #
 
-if set.boundstateChannel in basisTypes:
+if set.initialChannel in basisTypes:
     if os.path.isdir(set.helionDirectory) != False:
         print('<ECCE> removing the existing helion folder: %s.' %
               set.helionDirectory)
@@ -130,7 +130,7 @@ for basisType in basisTypes:
     minimalConditionNumber = 1e-10
     # energy ranges in which a larger number of Hamiltonian eigenvalues
     # correspond to a "stronger" basis individuum
-    targetEVinterval = [-9., -0.5] if basisType == set.boundstateChannel else [
+    targetEVinterval = [-9., -0.5] if basisType == set.initialChannel else [
         -3., 80.0
     ]
     muta_initial = 0.1
@@ -155,15 +155,15 @@ for basisType in basisTypes:
     tritonBindingEnergy = 8.482
     he3BindingEnergy = 7.72
     # get the initial, random basis seed to yield thresholds close to the results in a complete basis
-    channelThreshold = -1.0 if basisType == set.boundstateChannel else -1.00
+    channelThreshold = -1.0 if basisType == set.initialChannel else -1.00
     CgfCycles = 1
     # nRaces := |i|
-    nRaces = 1 if basisType == set.boundstateChannel else 4
+    nRaces = 1 if basisType == set.initialChannel else 4
     maximumOffspring = 6
 
     # > nState > produce/optimize/grow multiple bases with pseudo-random initial seeds
     for basisNo in range(NumberOfScatteringBasisFunctions):
-        workDir = set.helionDirectory if basisType == set.boundstateChannel else finalStatePaths[
+        workDir = set.helionDirectory if basisType == set.initialChannel else finalStatePaths[
             basisNo]
         basisPath = workDir + 'basis_struct/'
         os.chdir(workDir)
@@ -583,7 +583,7 @@ for basisType in basisTypes:
                optCond, groundstateEnergy, optLove))
 
         # Output on tape; further processing via A3...py
-        suf = 'ref' if basisType == set.boundstateChannel else 'fin-%d' % ScatteringBasis[
+        suf = 'ref' if basisType == set.initialChannel else 'fin-%d' % ScatteringBasis[
             basisNo]
 
         lfrags = np.array(civs[0][0])[:, 1].tolist()
@@ -622,7 +622,7 @@ for basisType in basisTypes:
         fullBasfile, actBasfile, actFragfile, intwFile, relwFile = write_basis_on_tape(
             civs[0], jValue, basisType, baspath=basisPath)
 
-        if basisType != set.boundstateChannel:
+        if basisType != set.initialChannel:
             AbasOutStr = set.resultsDirectory + 'Ssigbasv3heLIT_%s_BasNR-%d.dat' % (
                 basisType, ScatteringBasis[basisNo])
             FbasOutStr = set.resultsDirectory + 'SLITbas_full_%s_BasNR-%d.dat' % (
@@ -657,7 +657,7 @@ for basisType in basisTypes:
         matoutstr = '%smat_%s' % (
             set.resultsDirectory,
             basisType + '_BasNR-%d' % ScatteringBasis[basisNo]
-        ) if basisType != set.boundstateChannel else '%smat_%s' % (
+        ) if basisType != set.initialChannel else '%smat_%s' % (
             set.resultsDirectory, basisType)
 
         shutil.copy('MATOUTB', matoutstr)
@@ -670,6 +670,6 @@ for basisType in basisTypes:
                   set.backupDirectory)
 
         # for the bound-state/initial-state channel, consider only one basis set
-        if basisType == set.boundstateChannel:
+        if basisType == set.initialChannel:
             break
 print('>>>>> end of NextToNewestGeneration.py')

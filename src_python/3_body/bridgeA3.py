@@ -79,7 +79,7 @@ class A3settings:
         self.maxProcesses = int(mpiProcesses)
         print(">>>>>>>>>>>>> max # Processes=", self.maxProcesses)
 
-    cal = [
+    calculations = [
         'dbg',
         'einzel',
         'rhs_lu-ob-qua',
@@ -87,6 +87,7 @@ class A3settings:
         'rhs-end',
         'rhs',
         'rhs-couple',
+#        'allM',
     ]
 
     jobDirectory = os.getcwd()
@@ -148,11 +149,11 @@ class A3settings:
 
     ScatteringChannels = ['0.5^-']  #, '1.5^-']
     #                  realistic    L>0 (only)         deuteron
-    boundstateChannel = 'pnn0.5^+'
+    initialChannel = 'pnn0.5^+'
 
-    J0 = float(boundstateChannel.split('^')[0][-3:])
+    J0 = float(initialChannel.split('^')[0][-3:])
 
-    multipolarity = 1
+    operatorL = 1
 
     anz_phot_e = 1
     photonEnergyStart = 0.1  #  enems_e converts to fm^-1, but HERE the value is in MeV

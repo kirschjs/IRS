@@ -28,19 +28,17 @@ def polyWidths(wmin=10**-2, wmax=10, nbrw=10, npoly=4):
     return wds[1:-1]
 
 
-def non_zero_couplings(j1, j2, j3):
+def allowedMs(j1, j2, j3):
     # we are interested in viable m1,m3 combinations
-    # (L ml,J_deut mJd|J_lit mlit)
-    # ECCE: CG takes J *NOT* 2J, i.e., also fractional angular momenta
+    # (L ml,J_0 m_{J_0}|J_{final}} m_{final})
+    # NOTE: CG takes J *NOT* 2J, i.e., we also fractional angular momenta
     m1m3 = []
     m1 = np.arange(-j1, j1 + 1)
     m3 = np.arange(-j3, j3 + 1)
     for mM in np.array(np.meshgrid(m1, m3)).T.reshape(-1, 2):
         clg = CG(j1, j2, j3, mM[0], mM[1] - mM[0], mM[1])  #.doit()
-        cg = 0 if ((clg == 0) | np.iscomplex(clg)) else float(clg)  #.evalf())
-        if (cg == 0):
-            continue
-        m1m3.append(mM)
+        if (clg != 0) &  (not np.iscomplex(clg)):
+            m1m3.append(mM)
     return m1m3, m1, m3
 
 

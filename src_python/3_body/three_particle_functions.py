@@ -646,8 +646,8 @@ def lit_3inen_bare(JWSL,
                    MULM2,
                    JWSR,
                    MREG='',
-                   anzo=11,
-                   outFileNm='INEN'):
+                   noOper=11,
+                   fileName='INEN'):
     out = ''
     # NBAND1,IGAK,KAUSD,KEIND ,IDUM
     out += ' 10  0  0  0\n'
@@ -655,7 +655,7 @@ def lit_3inen_bare(JWSL,
     # 10,11: r^LY_LM fuer p,n
     if MREG == '':
         out += '  1'
-        for n in range(anzo - 3):
+        for n in range(noOper - 3):
             out += '  0'
         out += '  1  1'
     else:
@@ -664,7 +664,7 @@ def lit_3inen_bare(JWSL,
     #    g_s(p)       g_s(n)   g_l(p)     g_l(n)
     out += '5.586       -3.826      1.          0.\n'
     out += '%3d%3d%3d%3d\n' % (2 * JWSL, 2 * JWSR, 2 * JWSLM, 2 * MULM2)
-    with open(outFileNm, 'w') as outfile:
+    with open(fileName, 'w') as outfile:
         outfile.write(out)
     outfile.close()
     return
