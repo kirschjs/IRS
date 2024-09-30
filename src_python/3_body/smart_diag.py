@@ -37,19 +37,19 @@ def blunt_ev(set,
     lfrag = np.array(cfgs)[:, 1].tolist()
     sfrag = np.array(cfgs)[:, 0].tolist()
     insam(len(lfrag))
-    n3_inlu(8, fn='INLUCN', fr=lfrag, indep=set.parallel)
+    generate_INLU(8, fn='INLUCN', fr=lfrag, indep=set.parallel)
     #os.system(bin_path + 'LUDW_CN.exe')
     run_external(binaryPath + 'LUDW_CN.exe')
-    n3_inob(sfrag, 8, fn='INOB', indep=set.parallel)
+    generate_INOB_file(sfrag, 8, fn='INOB', indep=set.parallel)
     #os.system(bin_path + 'KOBER.exe')
     run_external(binaryPath + 'KOBER.exe')
-    he3inquaN(intwi=intws, relwi=relws, potf=NNpotName, inquaout='INQUA_N_0')
-    parallel_mod_of_3inqua(lfrag,
+    generate_INQUAN_file(intwi=intws, relwi=relws, potf=NNpotName, inquaout='INQUA_N_0')
+    parallel_INQUA(lfrag,
                            sfrag,
                            infile='INQUA_N_0',
                            outFileNm='INQUA_N',
                            single_path=singleFilePath)
-    n3_inen_bdg(basis,
+    generate_INEN_bdg(basis,
                 angMomentum,
                 costring,
                 fileName='INEN',
@@ -73,17 +73,17 @@ def blunt_ev(set,
     else:
         subprocess.run([binaryPath + 'QUAFL_N.exe'])
     if potChoice == 11:
-        n3_inlu(8, fn='INLU', fr=lfrag, indep=set.parallel)
+        generate_INLU(8, fn='INLU', fr=lfrag, indep=set.parallel)
         #os.system(bin_path + 'DRLUD.exe')
         run_external(binaryPath + 'DRLUD.exe')
-        n3_inob(sfrag, 15, fn='INOB', indep=set.parallel)
+        generate_INOB_file(sfrag, 15, fn='INOB', indep=set.parallel)
         #os.system(bin_path + 'DROBER.exe')
         run_external(binaryPath + 'DROBER.exe')
-        he3inquaN(intwi=intws,
+        generate_INQUAN_file(intwi=intws,
                   relwi=relws,
                   potf=NNNpotName,
                   inquaout='INQUA_N_0')
-        parallel_mod_of_3inqua(lfrag,
+        parallel_INQUA(lfrag,
                                sfrag,
                                infile='INQUA_N_0',
                                outFileNm='INQUA_N',
@@ -274,7 +274,7 @@ def endmat(para, send_end):
     #           costring
     #           nzopt
     #           tnnii
-    n3_inen_bdg(D0,
+    generate_INEN_bdg(D0,
                 jValue,
                 costr,
                 fileName=inputFile,

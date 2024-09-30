@@ -189,9 +189,9 @@ while nB < (anzStreuBases):
         n2_inob(sfrags2, 8, fn='INOB')
         os.system(BINBDGpath + '/KOBER.exe')
 
-        generate_INQUA_BS(intwi=widi, potf=potnn, npol=npoli)
+        DinquaBS(intwi=widi, potf=potnn, npol=npoli)
         #n2_inen_bdg(sbas, Jstreu, costr, fn='INEN', pari=0)
-        generate_INEN_pol(sbas, Jstreu, costr, fn='INEN', pari=0, npol=npoli)
+        n2_inen_pol(sbas, Jstreu, costr, fn='INEN', pari=0, npol=npoli)
 
         if bastype == boundstatekanal:
             n2_inlu(8,

@@ -14,7 +14,6 @@ from settings import *
 
 
 class A3settings:
-
     def __init__(self, uniqueDirectory, shouldExist, mpiProcesses):
         """
             uniqueDirectory:    a unique directory for this run

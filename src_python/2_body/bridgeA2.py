@@ -1,42 +1,85 @@
-import subprocess
-import os, fnmatch
-import numpy as np
-import sympy as sy
+import os
+import os.path
+import shutil, datetime
+#import numpy as np
+
+#import sympy as sy
 # CG(j1, m1, j2, m2, j3, m3)
-from sympy.physics.quantum.cg import CG
-
-from parameters_and_constants import *
-from rrgm_functions import *
-from two_particle_functions import *
-
-import multiprocessing
-from smart_diag import *
+#from clg import CG
+#from parameters_and_constants import *
+#from rrgm_functions import *
+from settings import *
+#from smart_diag import *
+#from three_particle_functions import *
 
 
-def cartesian_coord(*arrays):
-    grid = np.meshgrid(*arrays)
-    coord_list = [entry.ravel() for entry in grid]
-    points = np.vstack(coord_list).T
-    return points
-    #a = np.arange(2)  # fake data
-    #print(cartesian_coord(*3 * [a]))
+class A3settings:
 
+    def __init__(self, uniqueDirectory, shouldExist, mpiProcesses):
+        """
+            uniqueDirectory:    a unique directory for this run
+            shouldExist:        should the unique directory already exist (or should it not)
+            mpiProcesses:       number of MPI processes to run
+        """
 
-# float16 : Half   precision float: sign bit,  5 bits exponent, 10 bits mantissa
-# float32 : Single precision float: sign bit,  8 bits exponent, 23 bits mantissa
-# float64 : Double precision float: sign bit, 11 bits exponent, 52 bits mantissa
-#
-dt = 'float32'
+        self.backupDirectory = os.getenv(
+            'HOME'
+        ) + '/scratch/compton_IRS/' + uniqueDirectory + '/'  # where results are stored at the end
+        if os.path.exists(self.backupDirectory + '/results'):
+            print(
+                "Use existing results folder/Create backup and write in empty folder: (press Enter)/(type B)?"
+            )
+            ctn = input()
+            if ctn == 'B':
+                # safe exisitng results folder before creating a new one
+                resdest = self.backupDirectory + 'latestresults_' + datetime.datetime.now(
+                ).strftime('%d-%b-%Y--%H-%M-%S')
+                shutil.move(self.backupDirectory + 'results/', resdest)
+                print('existing results moved to:\n', resdest)
+                self.backupDirectory += 'results/'
+                os.makedirs(self.backupDirectory, exist_ok=True)
+            else:
+                self.backupDirectory += 'results/'
+        else:
+            self.backupDirectory += 'results/'
+            os.makedirs(self.backupDirectory, exist_ok=True)
 
-suffix = 'miwchan'  #files names for test runs
-anzproc = 6  #int(len(os.sched_getaffinity(0)) / 1)
+        self.temporaryDirectory = '/tmp/' + uniqueDirectory + '/'
 
-# penta+ -------------------------------------------
-#1 run <PSI_parallel.py> for boundsatekanal und streukas
-#2 1st <A3_lit_par.py>   run
-#3 2nd <A3_lit_par.py>   run
+        if shouldExist:
+            if not os.path.exists(self.temporaryDirectory):
+                print("uniqueDirectory:\n$",
+                      self.temporaryDirectory,
+                      "\n does not exist, but should.",
+                      file=sys.stderr)
+                exit(-1)
+        else:
+            print(self.temporaryDirectory)
+            if os.path.exists(self.temporaryDirectory):
+                shutil.rmtree(self.temporaryDirectory)
+                os.makedirs(self.temporaryDirectory)
+                print('Deleted the existing and created a new tmp dir: ',
+                      self.temporaryDirectory)
+            else:
+                os.makedirs(self.temporaryDirectory)
+                print('Created tmp dir: ', self.temporaryDirectory)
 
-cal = [
+        os.chdir(self.temporaryDirectory)
+
+        self.resultsDirectory = self.temporaryDirectory + 'results/'
+        os.makedirs(self.resultsDirectory, exist_ok=True)
+        self.helionDirectory = self.temporaryDirectory + 'he3/'
+        os.makedirs(self.helionDirectory, exist_ok=True)
+        # backup in home, and hence, we check whether there is enough space *there*
+        (totSpace, usedSpace, freeSpace) = shutil.disk_usage(os.getenv('HOME'))
+        self.backupFree = int(0.1 * totSpace)
+        totSpace, usedSpace, freeSpace = shutil.disk_usage(
+            self.temporaryDirectory)
+        self.temporaryFree = int(0.1 * totSpace)
+        self.maxProcesses = int(mpiProcesses)
+        print(">>>>>>>>>>>>> max # Processes=", self.maxProcesses)
+
+calculations = [
     'construe_fresh_deuteron',
     #'reduce',
     'coeff',
@@ -50,33 +93,32 @@ cal = [
     'rhs-end',
     'rhs',
     'rhs-couple',
+#        'allM',
 ]
 
-home = os.getenv("HOME")
+    jobDirectory = os.getcwd()
 
-#output: Value of 'HOME' environment variable : /home_th/singh
-#pathbase = home + '/OneDrive/Deuteron-RF'
-pathbase = home + '/kette_repo/IRS'
-bkpdir = pathbase + '/tmp'  #not used
+    bindingBinDir = jobDirectory + '/../../src_fortran/'
+    litBinDir = jobDirectory + '/../../src_fortran/'
 
-litpathD = home + '/scratch/compton_IRS/' + suffix
+    # tnni=10 for NN; tnni=11 for  NN and NNN
+    tnni = 10 # two body!
+    useV3B = (tnni == 11)
+    parallel = -1  # use -1 in some of the input files: horrible!
 
-if os.path.isdir(litpathD) != False:
-    if 'reset' in cal:
-        os.system('rm -rf ' + litpathD)
-        os.mkdir(litpathD)
-    else:
-        pass
-else:
-    os.mkdir(litpathD)
+    # the initial population is bred in chunks of length <civ_size> and *not* as
+    # one large set in order to limit the number of parallel threads to be manageable
+    civ_size = 15
+    # number of bases comprising a generation
+    civ_size_max = 25
 
-deuteronpath = litpathD + 'D'
-if os.path.isdir(deuteronpath) == False:
-    os.mkdir(deuteronpath)
+    # number of children to replace an equal number of old-generation members
+    anzNewBV = 6
 
-respath = litpathD + '/results'
-if os.path.isdir(respath) == False:
-    os.mkdir(respath)
+    nnPotLabel = 'AV18'  #'nn_pot'  #pot_nn_06'  #'BONN'  #AV4.14'
+    nnPotFile = jobDirectory + '/../../data/%s' % nnPotLabel
+    nnnPotLabel = 'urbana9_AK_neu'  #'nnn_pot'  #'pot_nnn_06'  #
+    nnnPotFile = jobDirectory + '/../../data/%s' % nnnPotLabel
 
 BINBDGpath = pathbase + '/src_fortran'
 BINLITpath = pathbase + '/src_fortran'
@@ -108,25 +150,22 @@ channels = {
     ],
 }
 
-streukas = ['0^-', '1^-', '2^-']  #
+ScateringChannels = ['0^-', '1^-', '2^-']  #
 
-anzStreuBases = 1
+anzStreuBases = 1 #######################Check????
 
 #                  realistic    L>0 (only)         deuteron
-boundstatekanal = 'np1^+'
+initialChannel = 'np1^+'
 
-J0 = float(boundstatekanal.split('^')[0][-1])
+    J0 = float(initialChannel.split('^')[0][-3:])
 
-multipolarity = 1
-
-npoli = 0
+    operatorL = 1
 
 anz_phot_e = 1
-phot_e_0 = 0.01  #  enems_e converts to fm^-1, but HERE the value is in MeV
-phot_e_d = 1.0  #  delta E
+    photonEnergyStart = 0.1  #  enems_e converts to fm^-1, but HERE the value is in MeV
+    photonEnergyStep = 1.0  #  delta E
 
-opME_th_low = 10**(-24)
-opME_th_up = 10**24
+    # basis ------------------------------------------------------------------
 
 # deuteron/initial-state basis -------------------------------------------
 cluster_centers_per_zerl = 3

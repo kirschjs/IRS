@@ -7,7 +7,7 @@ import rrgm_functions
 from settings import *
 #labelled spin configurations
 #   A   x   y  z   label  followed vy
-elem_spin_prods_3 = {
+elem_spin_prods = {
     # He = npp : relevant spin-isospin functions; noX defines the total and intermediate (iso)spins;
     # the y appendix identifies the relativ vector r_3-r_2 with the 1st Jacobi coord. while r_2-r_1
     # is standard
@@ -51,7 +51,7 @@ elem_spin_prods_3 = {
 }
 
 
-def red_mod_3(typ='',
+def reduce_basis(typ='',
               max_coeff=11000,
               min_coeff=150,
               target_size=80,
@@ -215,7 +215,7 @@ def red_mod_3(typ='',
     return bdg_end, basis_size
 
 
-def reduce_3n(ch='612-05m',
+def shrink_widths(ch='612-05m',
               size3=90,
               ncycl=350,
               maxd=0.005,
@@ -228,7 +228,7 @@ def reduce_3n(ch='612-05m',
     print('reducing widths in %s channel...' % ch)
     cons_red = 1
     while cons_red:
-        tmp = red_mod_3(typ=ch,
+        tmp = reduce_basis(typ=ch,
                         max_coeff=maxc3,
                         min_coeff=minc3,
                         target_size=size3,
@@ -250,7 +250,7 @@ def reduce_3n(ch='612-05m',
     print('reduction to %d widths complete.' % size3)
 
 
-def dn_inqua_21(
+def generate_INQUA_21(
         basis3,
         dicti,
         #relw=parameters_and_constants.w120,
@@ -389,7 +389,7 @@ def insam(anz, fn='INSAM'):
         outfile.write(out)
 
 
-def n3_inlu(anzO, fn='INLU', fr=[], indep=0):
+def generate_INLU(anzO, fn='INLU', fr=[], indep=0):
     # INDEP = -1 (write header, parallel) +1 (write single files) 0 (serial version)
     out = '  0  0  0  0  0%3d\n' % indep
     for n in range(anzO):
@@ -404,9 +404,7 @@ def n3_inlu(anzO, fn='INLU', fr=[], indep=0):
             out += '%s_%s\n' % (fr[n], fr[m])
     with open(fn, 'w') as outfile:
         outfile.write(out)
-
-
-def lit_3inlu_parallel(mul=0, anzo=7, indep=1, frag=[]):
+def generate_INLU_parallel(mul=0, anzo=7, indep=1, frag=[]):
     s = ''
     #   NBAND1,NBAND2,LAUS,KAUS,MKAUS,LALL,INDEP
     #   INDEP = -1 (write header, parallel) +1 (write single files) 0 (serial version)
@@ -425,9 +423,23 @@ def lit_3inlu_parallel(mul=0, anzo=7, indep=1, frag=[]):
     with open('INLU', 'w') as outfile:
         outfile.write(s)
     return
+def generate_INLU(mul=0, anzo=7, frag=[], fn='INLU'):
+    out = ''
+    #   NBAND1,NBAND2,LAUS,KAUS,MKAUS,LALL
+    out += '  9  2  0  0  0\n'
+    for n in range(anzo):
+        out += '  1'
+    out += '\n%3d%3d\n' % (len(frag), mul)
+    for n in range(len(frag)):
+        out += '  1  3\n'
+    for n in range(len(frag)):
+        out += '%3d%3d\n%3d\n' % (int(frag[n][0]), int(
+            frag[n][1]), int(frag[n][2]))
+    with open(fn, 'w') as outfile:
+        outfile.write(out)
+    return
 
-
-def n3_inob(fr, anzO, fn='INOB', indep=0):
+def generate_INOB_file_indep(fr, anzO, fn='INOB', indep=0):
     # INDEP = -1 (write header, parallel) +1 (write single files) 0 (serial version)
     #                IBOUND => ISOSPIN coupling allowed
     out = '  0  2  2  1%3d\n' % indep
@@ -435,15 +447,14 @@ def n3_inob(fr, anzO, fn='INOB', indep=0):
         out += '  1'
     out += '\n  4\n%3d  3\n' % len(fr)
     for n in fr:
-        out += elem_spin_prods_3[n]
+        out += elem_spin_prods[n]
     for n in range(len(fr)):
         for m in range(len(fr)):
             out += '%s_%s\n' % (fr[n], fr[m])
     with open(fn, 'w') as outfile:
         outfile.write(out)
 
-
-def n3_inen_rhs(bas,
+def generate_INEN_rhs(bas,
                 jay,
                 co,
                 rw,
@@ -472,9 +483,7 @@ def n3_inen_rhs(bas,
         out += tmp
     with open(fileName, 'w') as outfile:
         outfile.write(head + out)
-
-
-def n3_inen_bdg(bas,
+def generate_INEN_bdg(bas,
                 jValue,
                 co,
                 fileName='INEN',
@@ -508,25 +517,8 @@ def n3_inen_bdg(bas,
     with open(fileName, 'w') as outfile:
         outfile.write(head + out)
 
-
-def lit_3inlu(mul=0, anzo=7, frag=[], fn='INLU'):
-    out = ''
-    #   NBAND1,NBAND2,LAUS,KAUS,MKAUS,LALL
-    out += '  9  2  0  0  0\n'
-    for n in range(anzo):
-        out += '  1'
-    out += '\n%3d%3d\n' % (len(frag), mul)
-    for n in range(len(frag)):
-        out += '  1  3\n'
-    for n in range(len(frag)):
-        out += '%3d%3d\n%3d\n' % (int(frag[n][0]), int(
-            frag[n][1]), int(frag[n][2]))
-    with open(fn, 'w') as outfile:
-        outfile.write(out)
-    return
-
-
-def lit_3inob_parallel(anzo=13, indep=1, fr=[]):
+def generate_INOB_parallel(anzo=13, indep=1, fr=[]):
+    global elem_spin_prods
     out = ''
     out += '  8  3  3  3%3d\n' % indep
     for n in range(anzo):
@@ -534,7 +526,7 @@ def lit_3inob_parallel(anzo=13, indep=1, fr=[]):
     out += '\n  4\n'
     out += '%3d  3\n' % len(fr)
     for n in fr:
-        out += elem_spin_prods_3[n]
+        out += elem_spin_prods[n]
     for n in range(len(fr)):
         for m in range(len(fr)):
             out += '%s_%s\n' % (fr[n], fr[m])
@@ -542,8 +534,7 @@ def lit_3inob_parallel(anzo=13, indep=1, fr=[]):
         outfile.write(out)
     return
 
-
-def lit_3inob(anzo=13, fr=[], fn='INOB'):
+def generate_INOB_file(anzo=13, fr=[], fn='INOB'):
     out = ''
     out += '  8  3  3  3\n'
     for n in range(anzo):
@@ -551,13 +542,11 @@ def lit_3inob(anzo=13, fr=[], fn='INOB'):
     out += '\n  4\n'
     out += '%3d  3\n' % len(fr)
     for n in fr:
-        out += elem_spin_prods_3[n]
+        out += elem_spin_prods[n]
     with open(fn, 'w') as outfile:
         outfile.write(out)
-    return
 
-
-def parallel_mod_of_3inqua(frlu=[],
+def parallel_INQUA(frlu=[],
                            frob=[],
                            infile='INQUA',
                            outFileNm='INQUA_PAR',
@@ -582,8 +571,7 @@ def parallel_mod_of_3inqua(frlu=[],
     #  1   :   0  0  1S0         0
     #  2   :   1  0  3S1         2
 
-
-def lit_3inqua(intwi=[],
+def generate_INQUA_file(intwi=[],
                relwi=[],
                LREG='',
                anzo=13,
@@ -640,8 +628,7 @@ def lit_3inqua(intwi=[],
     #  1   :   0  0  1S0         0
     #  2   :   1  0  3S1         2
 
-
-def lit_3inen_bare(JWSL,
+def generate_INEN_bare(JWSL,
                    JWSLM,
                    MULM2,
                    JWSR,
@@ -669,8 +656,7 @@ def lit_3inen_bare(JWSL,
     outfile.close()
     return
 
-
-def lit_3inen(BUECO,
+def generate_INEN_file(BUECO,
               KSTREU,
               JWSL,
               JWSLM,
@@ -739,8 +725,7 @@ def lit_3inen(BUECO,
     outfile.close()
     return
 
-
-def he3inquaN(intwi=[], relwi=[], potf='', inquaout='INQUA_N'):
+def generate_INQUAN_file(intwi=[], relwi=[], potf='', inquaout='INQUA_N'):
     s = ''
     # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
     s += ' 10  8  9  3 00  0  0  0  0\n%s\n' % potf
@@ -772,8 +757,7 @@ def he3inquaN(intwi=[], relwi=[], potf='', inquaout='INQUA_N'):
         outfile.write(s)
     return
 
-
-def he3inquaBS(intwi=[], relwi=[], potf='', inquaout='INQUA_M'):
+def generate_INQUA_file_BS(intwi=[], relwi=[], potf='', inquaout='INQUA_M'):
     s = ''
     # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
     s += ' 10  8  9  3 00  0  0  0  0\n%s\n' % potf
@@ -803,8 +787,7 @@ def he3inquaBS(intwi=[], relwi=[], potf='', inquaout='INQUA_M'):
         outfile.write(s)
     return
 
-
-def lit_3inqua_M(intwi=[], relwi=[], LREG='', anzo=13, outFileNm='INQUA'):
+def generate_INQUA_file(intwi=[], relwi=[], LREG='', anzo=13, outFileNm='INQUA'):
     s = ''
     # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
     s += ' 10  8  9  3 00  0  0  0  0\n'
@@ -843,8 +826,7 @@ def lit_3inqua_M(intwi=[], relwi=[], LREG='', anzo=13, outFileNm='INQUA'):
     #  1   :   0  0  1S0         0
     #  2   :   1  0  3S1         2
 
-
-def lit_3inqua_seq(intwi=[], relwi=[], LREG='', anzo=13, outFileNm='INQUA'):
+def generate_inqua_file_seq(intwi=[], relwi=[], LREG='', anzo=13, outFileNm='INQUA'):
     s = ''
     # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
     s += ' 10  8  9  3 00  0  0  0  0\n'
@@ -890,7 +872,6 @@ def lit_3inqua_seq(intwi=[], relwi=[], LREG='', anzo=13, outFileNm='INQUA'):
     #  1   :   0  0  1S0         0
     #  2   :   1  0  3S1         2
 
-
 def read_inob(infile='INOB'):
     fi = [line for line in open(infile)]
     ob_stru = []
@@ -898,7 +879,6 @@ def read_inob(infile='INOB'):
         if 'he' in ll.split()[-1]:
             ob_stru.append(ll.split()[-1].strip())
     return ob_stru
-
 
 def read_inlu(infile='INLU'):
     fi = [line for line in open(infile)][2:]
@@ -908,47 +888,44 @@ def read_inlu(infile='INLU'):
                        fi[n + 1].split()[0].strip())
     return lu_stru
 
-
-def retrieve_he3_M(inqua):
-    relw = []
-    intw = []
-    frgm = []
-    inq = [line for line in open(inqua)]
+def retrieve_basis_data(inqua):
+    relativeWidths = []
+    intWidths = []
+    decompsitionInfo = []
+    inquaText = [line for line in open(inqua)]
     lineNR = 0
-    while lineNR < len(inq):
-        if ((re.search('Z', inq[lineNR]) != None) |
-            (re.search('z', inq[lineNR]) != None)):
+    while lineNR < len(inquaText):
+        if ((re.search('Z', inquaText[lineNR]) != None) |
+            (re.search('z', inquaText[lineNR]) != None)):
             break
         lineNR += 1
-    if lineNR == len(inq):
+    if lineNR == len(inquaText):
         print('FATAL: no <Z> qualifier found in <INQUA>!')
         exit(-1)
-    while ((lineNR < len(inq)) & (inq[lineNR][0] != '/')):
+    while ((lineNR < len(inquaText)) & (inquaText[lineNR][0] != '/')):
         try:
-            anziw = int(inq[lineNR].split()[0])
+            numberOfiw = int(inquaText[lineNR].split()[0])
         except:
             break
-        anzbvLN = int(1 + np.ceil(anziw / 6)) * anziw
-        anzrw = int(inq[lineNR + 1].split()[1])
-        frgm.append([anziw, anzrw])
-        intwtmp = []
-        relwtmp = []
-        for iws in range(0, 2 * anziw, 2):
-            intwtmp += [float(inq[lineNR + 2 + iws].strip())]
-            relwtmp.append(
-                [float(rrw) for rrw in inq[lineNR + 3 + iws].split()])
-        intw += [intwtmp]
-        relw += [relwtmp]
-        lineNR += 2 * anziw + anzbvLN + 2
-    iw = intw
-    rw = relw
+        numberOfbvLN = int(1 + np.ceil(numberOfiw / 6)) * numberOfiw
+        numberOfrw = int(inquaText[lineNR + 1].split()[1])
+        decompsitionInfo.append([numberOfiw, numberOfrw])
+        intWidthsTemp = []
+        relativeWidthsTemp = []
+        for iws in range(0, 2 * numberOfiw, 2):
+            intWidthsTemp += [float(inquaText[lineNR + 2 + iws].strip())]
+            relativeWidthsTemp.append(
+                [float(rrw) for rrw in inquaText[lineNR + 3 + iws].split()])
+        intWidths += [intWidthsTemp]
+        relativeWidths += [relativeWidthsTemp]
+        lineNR += 2 * numberOfiw + numberOfbvLN + 2
     with open('intw3he.dat', 'w') as f:
-        for ws in iw:
+        for ws in intWidths:
             np.savetxt(f, [ws], fmt='%12.4f', delimiter=' ; ')
     f.close()
     with open('relw3he.dat', 'w') as f:
-        for wss in rw:
+        for wss in relativeWidths:
             for ws in wss:
                 np.savetxt(f, [ws], fmt='%12.4f', delimiter=' ; ')
     f.close()
-    return iw, rw, frgm
+    return intWidths, relativeWidths, decompsitionInfo

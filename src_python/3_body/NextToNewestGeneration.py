@@ -869,16 +869,16 @@ for basisType in basisTypes:
 
         lfrags = np.array(initialCiv[0])[:, 1].tolist()
         sfrags = np.array(initialCiv[0])[:, 0].tolist()
-        n3_inlu(8,
+        generate_INLU(8,
                 fn=set.resultsDirectory + 'INLU_%s' % suf,
                 fr=lfrags,
                 indep=-1)
-        n3_inlu(8,
+        generate_INLU(8,
                 fn=set.resultsDirectory + 'INLUCN_%s' % suf,
                 fr=lfrags,
                 indep=-1)
-        n3_inob(sfrags, 8, fn=set.resultsDirectory + 'INOB_%s' % suf, indep=-1)
-        n3_inob(sfrags,
+        generate_INOB_file(sfrags, 8, fn=set.resultsDirectory + 'INOB_%s' % suf, indep=-1)
+        generate_INOB_file(sfrags,
                 15,
                 fn=set.resultsDirectory + 'DRINOB_%s' % suf,
                 indep=-1)

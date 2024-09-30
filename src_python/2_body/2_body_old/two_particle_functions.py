@@ -1,19 +1,431 @@
-import os
-import random
-import re
+import os, re
 import numpy as np
-#import parameters_and_constants
+import random
 import rrgm_functions
-from settings import *
-#labelled spin configurations
-#   A   x   y  z   label  followed vy
-elem_spin_prods = {
+from bridgeA2 import *
+
+elem_spin_prods_2 = {
     #
     'np_S1': '  2  1  1  1            np: s12=1\n  1  1\n  1  3\n  1  1\n',
     #
 }
 
-def reduce_basis(max_coeff=11000,
+
+def n2_inob(fr, anzO, fn='INOB', indep=0):
+    #                IBOUND => ISOSPIN coupling allowed
+    out = '  0  2  2  1%3d\n' % indep
+    for n in range(anzO):
+        out += '  1'
+    out += '\n  4\n%3d  2\n' % len(fr)
+
+    for n in fr:
+        out += elem_spin_prods_2[n]
+
+    with open(fn, 'w') as outfile:
+        outfile.write(out)
+
+
+def lit_2inob(anzo=13, fr=[], fn='INOB'):
+    s = ''
+    s += '  8  3  3  3\n'
+    for n in range(anzo):
+        s += '  1'
+    s += '\n  4\n'
+    s += '%3d  2\n' % len(fr)
+
+    for n in fr:
+        s += elem_spin_prods_2[n]
+
+    with open(fn, 'w') as outfile:
+        outfile.write(s)
+    return
+
+
+def n2_inlu(anzO, fn='INLUCN', fr=[], indep=0, npol=0):
+    out = '  0  0  0  0  0%3d\n' % indep
+    for n in range(anzO):
+        out += '  1'
+    out += '\n%d\n' % len(fr)
+    for n in range(0, len(fr)):
+        out += '  1  2%3d\n' % int(npol)
+
+    for n in fr:
+        out += '%3d\n' % (int(n[0]))
+        if npol != 0:
+            for npo in range(npol):
+                out += '%3d\n' % int(2 * npo)
+
+    with open(fn, 'w') as outfile:
+        outfile.write(out)
+
+
+def lit_2inlu(mul=0, anzo=7, frag=[], fn='INLU', npol=0):
+    s = ''
+    #   NBAND1,NBAND2,LAUS,KAUS,MKAUS,LALL
+    s += '  9  2  0  0  0\n'
+    for n in range(anzo):
+        s += '  1'
+    s += '\n%3d%3d\n' % (len(frag), mul)
+    for n in range(len(frag)):
+        s += '  1  2%3d\n' % int(npol)
+
+    for n in range(len(frag)):
+        s += '%3d\n' % int(frag[n])
+        if npol != 0:
+            for npo in range(npol):
+                s += '%3d\n' % int(2 * npo)
+
+    with open(fn, 'w') as outfile:
+        outfile.write(s)
+    return
+
+
+def DinquaBS(intwi=[], potf='', npol=0):
+    s = ''
+    # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
+    s += ' 10  8  9  3 00  0  0  0  0\n%s\n' % potf
+    zerl_counter = 0
+    bv_counter = 1
+    for n in range(len(intwi)):
+        zerl_counter += 1
+        nrel = len(intwi[n])
+        s += '%3d%60s%s\n%3d%3d\n' % (int(np.amax([1, npol])), '',
+                                      'Z%d  BVs %d - %d' %
+                                      (zerl_counter, bv_counter,
+                                       bv_counter - 1 + len(intwi[n])), 1,
+                                      nrel)
+
+        s += '%12.2f%12.2f\n' % (0, 0)
+        for rw in range(0, len(intwi[n])):
+            s += '%12.8f' % float(intwi[n][rw])
+        s += '\n'
+        for npo in range(1, int(np.amax([1, npol]) + 1)):
+            s += '  1  1%3d\n1.\n' % npo
+
+    with open('INQUA_M', 'w') as outfile:
+        outfile.write(s)
+
+    return
+
+
+def n2_inen_rhs(bas, jay, co, rw, fn='INEN', pari=0, nzop=14, tni=10, anzb=0):
+    head = '%3d  2 12%3d  1  0 +2  0  0 -1  0  1\n' % (tni, nzop)
+    head += '  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1\n'
+
+    head += co + '\n'
+
+    relstr = ''
+    for rwi in rw:
+        relstr += '%3d' % int(rwi)
+
+    out = ''
+    if anzb == 0:
+        out += '%4d%4d   1   0%4d\n' % (int(2 * jay), len(bas), pari)
+    else:
+        out += '%4d%4d   1   0%4d\n' % (int(2 * jay), anzb, pari)
+
+    for bv in bas:
+        out += '%4d%4d\n' % (1, bv[0])
+        tmp = ''
+        for i in range(bv[1] - 1):
+            tmp += '%3d' % (0)
+        tmp += '  1\n'
+        out += tmp
+
+    with open(fn, 'w') as outfile:
+        outfile.write(head + out)
+
+
+def lit_2inqua_M(intwi=[], relwi=[], LREG='', anzo=13, outfile='INQUA',
+                 npol=0):
+    s = ''
+
+    # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
+    s += ' 10  8  9  3 00  0  0  0  0\n'
+    if (LREG == ''):
+        for n in range(anzo):
+            s += '  1'
+    else:
+        s += LREG
+    s += '\n'
+    zerl_counter = 0
+    bv_counter = 1
+    for n in range(len(intwi)):
+        zerl_counter += 1
+        nrel = len(intwi[n])
+        s += '%3d%60s%s\n%3d%3d\n' % (int(np.amax([1, npol])), '',
+                                      'Z%d  BVs %d - %d' %
+                                      (zerl_counter, bv_counter,
+                                       bv_counter - 1 + len(intwi[n])), 1,
+                                      nrel)
+
+        s += '%12.2f%12.2f\n' % (0, 0)
+        for rw in range(0, len(intwi[n])):
+            s += '%12.8f' % float(intwi[n][rw])
+        s += '\n'
+        for npo in range(1, int(np.amax([1, npol]) + 1)):
+            s += '  1  1%3d\n1.\n' % npo
+
+    appe = 'w'
+    with open(outfile, appe) as outfi:
+        outfi.write(s)
+    return
+
+
+def n2_inen_pol(bas,
+                jay,
+                co,
+                fn='INEN',
+                pari=0,
+                nzop=14,
+                tni=10,
+                idum=2,
+                npol=0):
+    # idum=2 -> I4 for all other idum's -> I3
+    head = '%3d%3d 12%3d  1  0 +2  0  0 -1  0  1\n' % (tni, idum, nzop)
+    head += '  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1\n'
+
+    head += co + '\n'
+
+    npol = int(np.max([1, npol]))
+    out = ''
+    if idum == 2:
+        out += '%4d%4d   1   0%4d   0%4d\n' % (int(2 * jay), len(bas) * (npol),
+                                               pari, npol)
+
+    else:
+        out += '%3d%3d  1  0%3d  0%3d\n' % (int(2 * jay), len(bas) * (npol),
+                                            pari, npol)
+
+    relset = False
+
+    for bv in bas:
+
+        # polstr only needed if BV of type 1+p**2+p**4+... is wanted
+        #out += polstr
+        if idum == 2:
+            polstr = '%4d' % int(np.amax([1, npol]))
+            for pol in range(npol):
+                polstr += '%4d' % int(1 + pol + (bv[0] - 1) * npol)
+
+        else:
+            polstr = '%3d' % int(np.amax([1, npol]))
+            for pol in range(npol + 1):
+                polstr += '%3d' % int(1 + pol + (bv[0] - 1) * npol)
+        polstr += '\n'
+
+        for pol in range(1, 1 + npol):
+            if idum == 2:
+                out += '%4d%4d\n' % (1, int(pol + (bv[0] - 1) * npol))
+            else:
+                out += '%3d%3d\n' % (1, int(pol + (bv[0] - 1) * npol))
+
+            tmp = ''
+            for n in range(1, max(1, 1 + max(bv[1]))):
+                if n in bv[1]:
+                    tmp += '%3d' % int(1)
+                else:
+                    tmp += '%3d' % int(0)
+
+            tmp += '\n'
+            out += tmp
+
+    with open(fn, 'w') as outfile:
+        outfile.write(head + out)
+
+
+def n2_inen_bdg(bas, jay, co, fn='INEN', pari=0, nzop=14, tni=10, idum=2):
+    # idum=2 -> I4 for all other idum's -> I3
+    head = '%3d%3d 12%3d  1  0 +2  0  0 -1  0  1\n' % (tni, idum, nzop)
+    head += '  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1\n'
+
+    head += co + '\n'
+
+    out = ''
+    if idum == 2:
+        out += '%4d%4d   1   0%4d   0   0\n' % (int(2 * jay), len(bas), pari)
+
+    else:
+        out += '%3d%3d  1  0%3d  0  0\n' % (int(2 * jay), len(bas), pari)
+
+    relset = False
+
+    for bv in bas:
+        if idum == 2:
+
+            out += '%4d%4d\n' % (1, bv[0])
+        else:
+            out += '%3d%3d\n' % (1, bv[0])
+
+        tmp = ''
+        for n in range(1, max(1, 1 + max(bv[1]))):
+            if n in bv[1]:
+                tmp += '%3d' % int(1)
+            else:
+                tmp += '%3d' % int(0)
+
+        tmp += '\n'
+        out += tmp
+
+    with open(fn, 'w') as outfile:
+        outfile.write(head + out)
+
+
+def lit_2inen_bare(JWSL, JWSLM, MULM2, JWSR, MREG='', anzo=11, outfile='INEN'):
+    s = ''
+    # NBAND1,IGAK,KAUSD,KEIND ,IDUM
+    s += ' 10  0  0  0\n'
+    # 1-11 Einteilchen
+    # 10,11: r^LY_LM fuer p,n
+    if MREG == '':
+        s += '  1'
+        for n in range(anzo - 3):
+            s += '  0'
+        s += '  1  1'
+    else:
+        s += MREG
+
+    s += '\n'
+    #    g_s(p)       g_s(n)   g_l(p)     g_l(n)
+    s += '5.586       -3.826      1.          0.\n'
+    s += '%3d%3d%3d%3d\n' % (2 * JWSL, 2 * JWSR, 2 * JWSLM, 2 * MULM2)
+
+    with open(outfile, 'w') as outfi:
+        outfi.write(s)
+    outfi.close()
+    return
+
+
+def lit_2inen(BUECO,
+              KSTREU,
+              JWSL,
+              JWSLM,
+              MULM2,
+              JWSR,
+              MREG='',
+              NPARL=2,
+              NPARR=2,
+              anzo=11,
+              ANORML=1.0,
+              ANORMR=1.0,
+              EB=-2.2134173,
+              NZE=100,
+              EK0=1e3,
+              EKDIFF=20.0,
+              withhead=True,
+              bnd='',
+              outfile='INEN'):
+    s = ''
+    # NBAND1,IGAK,KEIND,IQUAK
+    s += ' 10  0  0  0\n'
+    # 1-11 Einteilchen, if any MREG>=12 # 0 => MODUS=1 => lese QUALMOUT
+    # 10,11: el. siegert limes fuer p,n
+    if MREG == '':
+        s += '  1'
+        for n in range(anzo - 3):
+            s += '  0'
+        s += '  1  1'
+    else:
+        s += MREG
+
+    s += '\n'
+    # g faktoren (6)
+    s += '5.586       -3.826      1.          0.          1.          0.\n'
+    s += '%11.4f%11.4f\n%11.4f\n' % (ANORML, ANORMR, EB)
+    # nbrE , E0 , dE  (in MeV)
+    s += '%3d\n%-12.4f%-12.4f\n' % (NZE, EK0, EKDIFF)
+    # JWSL,JWSR,NPARL,NPARR=1,2(-,+),JWSLM,MULM2
+    s += '%3d%3d%3d%3d%3d%3d\n' % (2 * JWSL, 2 * JWSR, NPARL, NPARR, 2 * JWSLM,
+                                   2 * MULM2)
+    # NZKL,NZKR,NZKPL,NZKPR
+    s += '%3d%3d  0  0\n' % (1, 1)
+
+    # uecof
+    s += '%3d\n' % (len(BUECO) + 1)
+    for c in BUECO:
+        s += '%12.6f\n' % c
+    s += '+1.0\n'
+
+    #          [QBV nbr. relW]
+
+    s += '%3d%3d\n%3d\n' % (1, KSTREU[0], len(BUECO) + 1)
+    s += '%s  1\n' % (' ' * int(3 * (KSTREU[1] - 1)))
+
+    nueco = 1
+    if bnd != '':
+        print('reading %s' % bnd)
+        bdginen = [line for line in open(bnd)]  #[8:]
+
+        for n in range(int(bdginen[7][4:8])):
+
+            tr = np.nonzero(np.array(
+                bdginen[9 + 2 * n].split()).astype(int))[0]
+
+            for m in range(len(tr)):
+                s += '  1%3d\n' % int(bdginen[8 + 2 * n][4:8])
+                s += '%3d\n' % nueco
+                nueco += 1
+                s += '  0' * tr[m]
+                s += '  1\n'
+    #else:
+    #    print('INEN w/o 3He structure.')
+
+    with open(outfile, 'w') as outfi:
+        outfi.write(s)
+    outfi.close()
+    return
+
+
+def retrieve_D_M(inqua, npoli):
+
+    relw = []
+    frgm = []
+    inq = [line for line in open(inqua)]
+
+    lineNR = 0
+    while lineNR < len(inq):
+        if ((re.search('Z', inq[lineNR]) != None) |
+            (re.search('z', inq[lineNR]) != None)):
+            break
+        lineNR += 1
+    if lineNR == len(inq):
+        print('no <Z> qualifier found in <INQUA>!')
+        exit()
+
+    while ((lineNR < len(inq)) & (inq[lineNR][0] != '/')):
+        try:
+            anziw = int(inq[lineNR].split()[0])
+        except:
+            break
+        #print('Two-body caclulation with %d polynoms per width set.' % anziw)
+        if anziw != int(np.max([1, npoli])):
+            print('Number of polynoms inconsistent with deuteron INPUT.')
+            print('anziw = %d != npoli = %d' % (anziw, npoli))
+            exit()
+
+        anzrw = int(inq[lineNR + 1].split()[1])
+
+        frgm.append([anziw, anzrw])
+
+        relwtmp = []
+        relwtmp.append([float(rrw) for rrw in inq[lineNR + 3].split()])
+        relw += relwtmp
+
+        lineNR += 2 + 2 + 2 * anziw
+        if (lineNR >= len(inq)):
+            break
+
+    rw = relw
+
+    with open('intwD.dat', 'wb') as f:
+        for ws in rw:
+            np.savetxt(f, [ws], fmt='%12.4f', delimiter=' ; ')
+    f.close()
+
+    return rw, frgm
+
+
+def purge_basis(max_coeff=11000,
                 min_coeff=150,
                 nbr_cycles=20,
                 max_diff=0.01,
@@ -175,7 +587,8 @@ def reduce_basis(max_coeff=11000,
 
     return bdg_end, basis_size
 
-def shrink_widths(w2rels,
+
+def reduce_2n(w2rels,
               ch='nn-1S0',
               size2=20,
               ncycl=50,
@@ -183,11 +596,10 @@ def shrink_widths(w2rels,
               minc2=500,
               maxc2=3000,
               execut=''):
-
-    print('(ia)    reducing widths in %s channel...' % ch)
     cons_red = 1
+    print('(ia)    reducing widths in %s channel...' % ch)
     while cons_red:
-        tmp = reduce_basis(
+        tmp = red_mod_2(
             max_coeff=maxc2,
             min_coeff=minc2,
             target_size=size2,
@@ -220,426 +632,6 @@ def shrink_widths(w2rels,
 
     print('(ib)    reduction to %d widths complete.' % size2)
 
-def generate_INOB_file_indep(fr, anzO, fn='INOB', indep=0):
-    #                IBOUND => ISOSPIN coupling allowed
-    out = '  0  2  2  1%3d\n' % indep
-    for n in range(anzO):
-        out += '  1'
-    out += '\n  4\n%3d  2\n' % len(fr)
-
-    for n in fr:
-        out += elem_spin_prods[n]
-
-    with open(fn, 'w') as outfile:
-        outfile.write(out)
-
-def generate_INOB_file(anzo=13, fr=[], fn='INOB'):
-    s = ''
-    s += '  8  3  3  3\n'
-    for n in range(anzo):
-        s += '  1'
-    s += '\n  4\n'
-    s += '%3d  2\n' % len(fr)
-
-    for n in fr:
-        s += elem_spin_prods[n]
-
-    with open(fn, 'w') as outfile:
-        outfile.write(s)
-    return
-
-def generate_INLUCN(anzO, fn='INLUCN', fr=[], indep=0, npol=0):
-    out = '  0  0  0  0  0%3d\n' % indep
-    for n in range(anzO):
-        out += '  1'
-    out += '\n%d\n' % len(fr)
-    for n in range(0, len(fr)):
-        out += '  1  2%3d\n' % int(npol)
-
-    for n in fr:
-        out += '%3d\n' % (int(n[0]))
-        if npol != 0:
-            for npo in range(npol):
-                out += '%3d\n' % int(2 * npo)
-
-    with open(fn, 'w') as outfile:
-        outfile.write(out)
-
-def generate_INLU(mul=0, anzo=7, frag=[], fn='INLU', npol=0):
-    s = ''
-    #   NBAND1,NBAND2,LAUS,KAUS,MKAUS,LALL
-    s += '  9  2  0  0  0\n'
-    for n in range(anzo):
-        s += '  1'
-    s += '\n%3d%3d\n' % (len(frag), mul)
-    for n in range(len(frag)):
-        s += '  1  2%3d\n' % int(npol)
-
-    for n in range(len(frag)):
-        s += '%3d\n' % int(frag[n])
-        if npol != 0:
-            for npo in range(npol):
-                s += '%3d\n' % int(2 * npo)
-
-    with open(fn, 'w') as outfile:
-        outfile.write(s)
-    return
-
-def generate_INLUCN(anzo=9, nfrag=1, npol=0): # was h2_inlu
-    s = ''
-    s += '  9\n'
-    for n in range(anzo):
-        s += '  1'
-    s += '\n%3d\n' % nfrag
-    for n in range(nfrag):
-        s += '  4  2\n'
-    for n in range(nfrag):
-        s += '  0\n  1\n  2\n  3\n'
-    for p in range(0, npol - 1):
-        s += '%3d\n' % (int(2 * p))
-    with open('INLUCN', 'w') as outfile:
-        outfile.write(s)
-    return
-
-def generate_INLU(mul=0, anzo=7, nfrag=1):# was lit_inlu
-    s = ''
-    #   NBAND1,NBAND2,LAUS,KAUS,MKAUS,LALL
-    s += '  9  2  0  0  0\n'
-    for n in range(anzo):
-        s += '  1'
-    s += '\n%3d%3d\n' % (nfrag, mul)
-    for n in range(nfrag):
-        s += '  4  2\n'
-    for n in range(nfrag):
-        s += '  0\n  1\n  2\n  3\n'
-
-    with open('INLU', 'w') as outfile:
-        outfile.write(s)
-    return
-
-def generate_INQUA_BS(intwi=[], potf='', npol=0):
-    s = ''
-    # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
-    s += ' 10  8  9  3 00  0  0  0  0\n%s\n' % potf
-    zerl_counter = 0
-    bv_counter = 1
-    for n in range(len(intwi)):
-        zerl_counter += 1
-        nrel = len(intwi[n])
-        s += '%3d%60s%s\n%3d%3d\n' % (int(np.amax([1, npol])), '',
-                                      'Z%d  BVs %d - %d' %
-                                      (zerl_counter, bv_counter,
-                                       bv_counter - 1 + len(intwi[n])), 1,
-                                      nrel)
-
-        s += '%12.2f%12.2f\n' % (0, 0)
-        for rw in range(0, len(intwi[n])):
-            s += '%12.8f' % float(intwi[n][rw])
-        s += '\n'
-        for npo in range(1, int(np.amax([1, npol]) + 1)):
-            s += '  1  1%3d\n1.\n' % npo
-
-    with open('INQUA_M', 'w') as outfile:
-        outfile.write(s)
-
-    return
-
-def generate_INEN_rhs(bas, jay, co, rw, fn='INEN', pari=0, nzop=14, tni=10, anzb=0):
-    head = '%3d  2 12%3d  1  0 +2  0  0 -1  0  1\n' % (tni, nzop)
-    head += '  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1\n'
-
-    head += co + '\n'
-    relstr = ''
-    for rwi in rw:
-        relstr += '%3d' % int(rwi)
-    out = ''
-    if anzb == 0:
-        out += '%4d%4d   1   0%4d\n' % (int(2 * jay), len(bas), pari)
-    else:
-        out += '%4d%4d   1   0%4d\n' % (int(2 * jay), anzb, pari)
-    for bv in bas:
-        out += '%4d%4d\n' % (1, bv[0])
-        tmp = ''
-        for i in range(bv[1] - 1):
-            tmp += '%3d' % (0)
-        tmp += '  1\n'
-        out += tmp
-    with open(fn, 'w') as outfile:
-        outfile.write(head + out)
-
-def generate_INQUA_file(intwi=[], relwi=[], LREG='', anzo=13, outfile='INQUA',
-                 npol=0):
-    s = ''
-
-    # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
-    s += ' 10  8  9  3 00  0  0  0  0\n'
-    if (LREG == ''):
-        for n in range(anzo):
-            s += '  1'
-    else:
-        s += LREG
-    s += '\n'
-    zerl_counter = 0
-    bv_counter = 1
-    for n in range(len(intwi)):
-        zerl_counter += 1
-        nrel = len(intwi[n])
-        s += '%3d%60s%s\n%3d%3d\n' % (int(np.amax([1, npol])), '',
-                                      'Z%d  BVs %d - %d' %
-                                      (zerl_counter, bv_counter,
-                                       bv_counter - 1 + len(intwi[n])), 1,
-                                      nrel)
-
-        s += '%12.2f%12.2f\n' % (0, 0)
-        for rw in range(0, len(intwi[n])):
-            s += '%12.8f' % float(intwi[n][rw])
-        s += '\n'
-        for npo in range(1, int(np.amax([1, npol]) + 1)):
-            s += '  1  1%3d\n1.\n' % npo
-
-    appe = 'w'
-    with open(outfile, appe) as outfi:
-        outfi.write(s)
-    return
-
-def generate_INEN_pol(bas,
-                jay,
-                co,
-                fn='INEN',
-                pari=0,
-                nzop=14,
-                tni=10,
-                idum=2,
-                npol=0):
-    # idum=2 -> I4 for all other idum's -> I3
-    head = '%3d%3d 12%3d  1  0 +2  0  0 -1  0  1\n' % (tni, idum, nzop)
-    head += '  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1\n'
-
-    head += co + '\n'
-
-    npol = int(np.max([1, npol]))
-    out = ''
-    if idum == 2:
-        out += '%4d%4d   1   0%4d   0%4d\n' % (int(2 * jay), len(bas) * (npol),
-                                               pari, npol)
-
-    else:
-        out += '%3d%3d  1  0%3d  0%3d\n' % (int(2 * jay), len(bas) * (npol),
-                                            pari, npol)
-
-    relset = False
-
-    for bv in bas:
-
-        # polstr only needed if BV of type 1+p**2+p**4+... is wanted
-        #out += polstr
-        if idum == 2:
-            polstr = '%4d' % int(np.amax([1, npol]))
-            for pol in range(npol):
-                polstr += '%4d' % int(1 + pol + (bv[0] - 1) * npol)
-
-        else:
-            polstr = '%3d' % int(np.amax([1, npol]))
-            for pol in range(npol + 1):
-                polstr += '%3d' % int(1 + pol + (bv[0] - 1) * npol)
-        polstr += '\n'
-
-        for pol in range(1, 1 + npol):
-            if idum == 2:
-                out += '%4d%4d\n' % (1, int(pol + (bv[0] - 1) * npol))
-            else:
-                out += '%3d%3d\n' % (1, int(pol + (bv[0] - 1) * npol))
-
-            tmp = ''
-            for n in range(1, max(1, 1 + max(bv[1]))):
-                if n in bv[1]:
-                    tmp += '%3d' % int(1)
-                else:
-                    tmp += '%3d' % int(0)
-
-            tmp += '\n'
-            out += tmp
-
-    with open(fn, 'w') as outfile:
-        outfile.write(head + out)
-
-def generate_INEN_bdg(bas, jay, co, fn='INEN', pari=0, nzop=14, tni=10, idum=2):
-    # idum=2 -> I4 for all other idum's -> I3
-    head = '%3d%3d 12%3d  1  0 +2  0  0 -1  0  1\n' % (tni, idum, nzop)
-    head += '  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1\n'
-
-    head += co + '\n'
-
-    out = ''
-    if idum == 2:
-        out += '%4d%4d   1   0%4d   0   0\n' % (int(2 * jay), len(bas), pari)
-
-    else:
-        out += '%3d%3d  1  0%3d  0  0\n' % (int(2 * jay), len(bas), pari)
-
-    relset = False
-
-    for bv in bas:
-        if idum == 2:
-
-            out += '%4d%4d\n' % (1, bv[0])
-        else:
-            out += '%3d%3d\n' % (1, bv[0])
-
-        tmp = ''
-        for n in range(1, max(1, 1 + max(bv[1]))):
-            if n in bv[1]:
-                tmp += '%3d' % int(1)
-            else:
-                tmp += '%3d' % int(0)
-
-        tmp += '\n'
-        out += tmp
-
-    with open(fn, 'w') as outfile:
-        outfile.write(head + out)
-
-def generate_INEN_bare(JWSL, JWSLM, MULM2, JWSR, MREG='', anzo=11, outfile='INEN'):
-    s = ''
-    # NBAND1,IGAK,KAUSD,KEIND ,IDUM
-    s += ' 10  0  0  0\n'
-    # 1-11 Einteilchen
-    # 10,11: r^LY_LM fuer p,n
-    if MREG == '':
-        s += '  1'
-        for n in range(anzo - 3):
-            s += '  0'
-        s += '  1  1'
-    else:
-        s += MREG
-
-    s += '\n'
-    #    g_s(p)       g_s(n)   g_l(p)     g_l(n)
-    s += '5.586       -3.826      1.          0.\n'
-    s += '%3d%3d%3d%3d\n' % (2 * JWSL, 2 * JWSR, 2 * JWSLM, 2 * MULM2)
-
-    with open(outfile, 'w') as outfi:
-        outfi.write(s)
-    outfi.close()
-    return
-
-def generate_INEN_file(BUECO,
-              KSTREU,
-              JWSL,
-              JWSLM,
-              MULM2,
-              JWSR,
-              MREG='',
-              NPARL=2,
-              NPARR=2,
-              anzo=11,
-              ANORML=1.0,
-              ANORMR=1.0,
-              EB=-2.2134173,
-              NZE=100,
-              EK0=1e3,
-              EKDIFF=20.0,
-              withhead=True,
-              bnd='',
-              outFileNm='INEN'):
-    s = ''
-    # NBAND1,IGAK,KEIND,IQUAK
-    s += ' 10  0  0  0\n'
-    # 1-11 Einteilchen, if any MREG>=12 # 0 => MODUS=1 => lese QUALMOUT
-    # 10,11: el. siegert limes fuer p,n
-    if MREG == '':
-        s += '  1'
-        for n in range(anzo - 3): # -2 in three boduy code???
-            s += '  0'
-        s += '  1  1'
-    else:
-        s += MREG
-    s += '\n'
-    # g faktoren (6)
-    s += '5.586       -3.826      1.          0.          1.          0.\n'
-    s += '%11.4f%11.4f\n%11.4f\n' % (ANORML, ANORMR, EB)
-    # nbrE , E0 , dE  (in MeV)
-    s += '%3d\n%-12.4f%-12.4f\n' % (NZE, EK0, EKDIFF)
-    # JWSL,JWSR,NPARL,NPARR=1,2(-,+),JWSLM,MULM2
-    s += '%3d%3d%3d%3d%3d%3d\n' % (2 * JWSL, 2 * JWSR, NPARL, NPARR, 2 * JWSLM,
-                                   2 * MULM2)
-    # NZKL,NZKR,NZKPL,NZKPR
-    s += '%3d%3d  0  0\n' % (1, 1)
-    # uecof
-    s += '%3d\n' % (len(BUECO) + 1)
-    for c in BUECO:
-        s += '%12.6f\n' % c
-    s += '+1.0\n'
-    #          [QBV nbr. relW]
-    s += '%3d%3d\n%3d\n' % (1, KSTREU[0], len(BUECO) + 1)
-    s += '%s  1\n' % (' ' * int(3 * (KSTREU[1] - 1)))
-    nueco = 1
-    if bnd != '':
-        print('reading %s' % bnd)
-        bdginen = [line for line in open(bnd)]  #[8:]
-        for n in range(int(bdginen[7][4:8])):
-            tr = np.nonzero(np.array(bdginen[9 +
-                                             2 * n].split()).astype(int))[0]
-            for m in range(len(tr)):
-                s += '  1%3d\n' % int(bdginen[8 + 2 * n][4:8])
-                s += '%3d\n' % nueco
-                nueco += 1
-                s += '  0' * tr[m]
-                s += '  1\n'
-    #else:
-    #    print('INEN w/o 3He structure.')
-    with open(outFileNm, 'w') as outfile:
-        outfile.write(s)
-    outfile.close()
-    return
-
-def retrieve_D_M(inqua, npoli):
-
-    relw = []
-    frgm = []
-    inq = [line for line in open(inqua)]
-
-    lineNR = 0
-    while lineNR < len(inq):
-        if ((re.search('Z', inq[lineNR]) != None) |
-            (re.search('z', inq[lineNR]) != None)):
-            break
-        lineNR += 1
-    if lineNR == len(inq):
-        print('no <Z> qualifier found in <INQUA>!')
-        exit()
-
-    while ((lineNR < len(inq)) & (inq[lineNR][0] != '/')):
-        try:
-            anziw = int(inq[lineNR].split()[0])
-        except:
-            break
-        #print('Two-body caclulation with %d polynoms per width set.' % anziw)
-        if anziw != int(np.max([1, npoli])):
-            print('Number of polynoms inconsistent with deuteron INPUT.')
-            print('anziw = %d != npoli = %d' % (anziw, npoli))
-            exit()
-
-        anzrw = int(inq[lineNR + 1].split()[1])
-
-        frgm.append([anziw, anzrw])
-
-        relwtmp = []
-        relwtmp.append([float(rrw) for rrw in inq[lineNR + 3].split()])
-        relw += relwtmp
-
-        lineNR += 2 + 2 + 2 * anziw
-        if (lineNR >= len(inq)):
-            break
-
-    rw = relw
-
-    with open('intwD.dat', 'wb') as f:
-        for ws in rw:
-            np.savetxt(f, [ws], fmt='%12.4f', delimiter=' ; ')
-    f.close()
-
-    return rw, frgm
 
 def h2_inen_str_pdp(relw, costr, j=0, sc=0, ch=[1]):
     s = ''
@@ -658,6 +650,7 @@ def h2_inen_str_pdp(relw, costr, j=0, sc=0, ch=[1]):
     with open('INEN', 'w') as outfile:
         outfile.write(s)
     return
+
 
 def h2_spole(nzen=20,
              e0=0.01,
@@ -693,6 +686,41 @@ def h2_spole(nzen=20,
         outfile.write(s)
     return
 
+
+def h2_inlu(anzo=9, nfrag=1, npol=0):
+    s = ''
+    s += '  9\n'
+    for n in range(anzo):
+        s += '  1'
+    s += '\n%3d\n' % nfrag
+    for n in range(nfrag):
+        s += '  4  2\n'
+    for n in range(nfrag):
+        s += '  0\n  1\n  2\n  3\n'
+    for p in range(0, npol - 1):
+        s += '%3d\n' % (int(2 * p))
+    with open('INLUCN', 'w') as outfile:
+        outfile.write(s)
+    return
+
+
+def lit_inlu(mul=0, anzo=7, nfrag=1):
+    s = ''
+    #   NBAND1,NBAND2,LAUS,KAUS,MKAUS,LALL
+    s += '  9  2  0  0  0\n'
+    for n in range(anzo):
+        s += '  1'
+    s += '\n%3d%3d\n' % (nfrag, mul)
+    for n in range(nfrag):
+        s += '  4  2\n'
+    for n in range(nfrag):
+        s += '  0\n  1\n  2\n  3\n'
+
+    with open('INLU', 'w') as outfile:
+        outfile.write(s)
+    return
+
+
 def h2_inob(anzo=15, nfrag=1):
     s = ''
     s += '  0  0\n'
@@ -725,6 +753,7 @@ def h2_inob(anzo=15, nfrag=1):
         outfile.write(s)
     return
 
+
 def lit_inob(anzo=13, nfrag=1):
     s = ''
     s += '  8  3  3  3\n'
@@ -745,7 +774,8 @@ def lit_inob(anzo=13, nfrag=1):
         outfile.write(s)
     return
 
-def generate_INQUAN_file(relw, ps2, withhead=True):
+
+def h2_inqua(relw, ps2, withhead=True):
     s = ''
     if (withhead):
         s += ' 10  8  9  3 00  0  0  0  0\n'
@@ -783,7 +813,8 @@ def generate_INQUAN_file(relw, ps2, withhead=True):
     #  1   :   0  0  1S0         0
     #  2   :   1  0  3S1         2
 
-def generate_INQUA_file(relw, LREG='', anzo=13, withhead=True):
+
+def lit_inqua(relw, LREG='', anzo=13, withhead=True):
     s = ''
     if (withhead):
         # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
@@ -827,7 +858,8 @@ def generate_INQUA_file(relw, LREG='', anzo=13, withhead=True):
     #  1   :   0  0  1S0         0
     #  2   :   1  0  3S1         2
 
-def generate_INEN_bs(relw,
+
+def h2_inen_bs(relw,
                costr,
                j=0,
                ch=1,
@@ -861,7 +893,8 @@ def generate_INEN_bs(relw,
         outfile.write(s)
     return
 
-def generate_INEN_str(relw, costr, j=0, sc=0, ch=1, anzo=7, withhead=True):
+
+def h2_inen_str(relw, costr, j=0, sc=0, ch=1, anzo=7, withhead=True):
     s = ''
     s += ' 10  2 12%3d  1  1 -0  0  0 -1\n' % int(anzo)
     #      N  T Co  CD^2 LS  T
@@ -881,7 +914,8 @@ def generate_INEN_str(relw, costr, j=0, sc=0, ch=1, anzo=7, withhead=True):
         outfile.write(s)
     return
 
-def generate_INEN_file(BUECO,
+
+def lit_inen(BUECO,
              KSTREU,
              KBND,
              JWSL,
