@@ -13,7 +13,7 @@ from settings import *
 #from three_particle_functions import *
 
 
-class A3settings:
+class A2settings:
 
     def __init__(self, uniqueDirectory, shouldExist, mpiProcesses):
         """
@@ -79,22 +79,22 @@ class A3settings:
         self.maxProcesses = int(mpiProcesses)
         print(">>>>>>>>>>>>> max # Processes=", self.maxProcesses)
 
-calculations = [
-    'construe_fresh_deuteron',
-    #'reduce',
-    'coeff',
-    'lhs',
-    'lhs_lu-ob-qua',
-    'reset',
-    'dbg',
-    'einzel',
-    'rhs_lu-ob-qua',
-    'rhs-qual',
-    'rhs-end',
-    'rhs',
-    'rhs-couple',
-#        'allM',
-]
+    calculations = [
+        'construe_fresh_deuteron',
+        #'reduce',
+        'coeff',
+        'lhs',
+        'lhs_lu-ob-qua',
+        'reset',
+        'dbg',
+        'einzel',
+        'rhs_lu-ob-qua',
+        'rhs-qual',
+        'rhs-end',
+        'rhs',
+        'rhs-couple',
+    #        'allM',
+    ]
 
     jobDirectory = os.getcwd()
 
@@ -120,52 +120,53 @@ calculations = [
     nnnPotLabel = 'urbana9_AK_neu'  #'nnn_pot'  #'pot_nnn_06'  #
     nnnPotFile = jobDirectory + '/../../data/%s' % nnnPotLabel
 
-BINBDGpath = pathbase + '/src_fortran'
-BINLITpath = pathbase + '/src_fortran'
-BINLITpathPOL = pathbase + '/src_fortran'
+    BINBDGpath = pathbase + '/src_fortran'
+    BINLITpath = pathbase + '/src_fortran'
+    BINLITpathPOL = pathbase + '/src_fortran'
 
-mpii = '137'
-potnn = pathbase + '/data/AV18m'  #'/data/BONN'  #'/data/AV4.14'  #
+    mpii = '137'
+    potnn = pathbase + '/data/AV18m'  #'/data/BONN'  #'/data/AV4.14'  #
 
-potnnn = pathbase + '/data/urbana9_AK_neu'
+    potnnn = pathbase + '/data/urbana9_AK_neu'
 
-new_deuteron = True
-# convention: bound-state-expanding BVs: (1-8), i.e., 8 states per rw set => nzf0*8
-channels = {
-    # deuteron
-    'np1^+': [
-        ['0', ['np_S1']],
-        ['2', ['np_S1']],
-    ],
-    #          [l1l2L,[compatible (iso)spin configurations]]
-    '0^-': [
-        ['1', ['np_S1']],
-    ],
-    '1^-': [
-        ['1', ['np_S1']],
-    ],
-    '2^-': [
-        ['1', ['np_S1']],
-        #['3', ['np_S1']],
-    ],
-}
+    new_deuteron = True
+    # convention: bound-state-expanding BVs: (1-8), i.e., 8 states per rw set => nzf0*8
+    channels = {
+        # deuteron
+        'np1^+': [
+            ['0', ['np_S1']],
+            ['2', ['np_S1']],
+        ],
+        #          [l1l2L,[compatible (iso)spin configurations]]
+        '0^-': [
+            ['1', ['np_S1']],
+        ],
+        '1^-': [
+            ['1', ['np_S1']],
+        ],
+        '2^-': [
+            ['1', ['np_S1']],
+            #['3', ['np_S1']],
+        ],
+    }
 
-ScateringChannels = ['0^-', '1^-', '2^-']  #
+    ScatteringChannels = ['0^-', '1^-', '2^-']  #
 
-anzStreuBases = 1 #######################Check????
+    anzStreuBases = 1 #######################Check????
 
-#                  realistic    L>0 (only)         deuteron
-initialChannel = 'np1^+'
+    #                  realistic    L>0 (only)         deuteron
+    initialChannel = 'np1^+'
 
     J0 = float(initialChannel.split('^')[0][-3:])
 
     operatorL = 1
 
-anz_phot_e = 1
+    anz_phot_e = 1
     photonEnergyStart = 0.1  #  enems_e converts to fm^-1, but HERE the value is in MeV
     photonEnergyStep = 1.0  #  delta E
 
-    # basis ------------------------------------------------------------------
+opME_th_low = 10**(-24)
+opME_th_up = 10**24
 
 # deuteron/initial-state basis -------------------------------------------
 cluster_centers_per_zerl = 3
