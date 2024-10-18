@@ -5,9 +5,9 @@ import multiprocessing
 import shutil
 import sys
 import time
-from itertools import product
+#from itertools import product
 from multiprocessing.pool import ThreadPool
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 from bridgeA3 import *
 from rrgm_functions import sortprint, polynomial_sum_weight
@@ -15,7 +15,7 @@ from genetic_width_growth import *
 from PSI_parallel_M import span_initial_basis, span_population, end3
 from settings import *
 from smart_diag import *
-from scipy.stats import truncnorm, norm
+from scipy.stats import truncnorm#, norm
 
 print('>>>>>>>>> start of NextToNewestGeneration.py')
 

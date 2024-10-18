@@ -23,7 +23,7 @@ class A3settings:
 
         self.backupDirectory = os.getenv(
             'HOME'
-        ) + '/scratch/compton_IRS/' + uniqueDirectory + '/'  # where results are stored at the end
+        ) + '/local/scratch/compton_IRS/' + uniqueDirectory + '/'  # where results are stored at the end
         if os.path.exists(self.backupDirectory + '/results'):
             print(
                 "Use existing results folder/Create backup and write in empty folder: (press Enter)/(type B)?"

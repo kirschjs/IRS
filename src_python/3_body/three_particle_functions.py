@@ -423,7 +423,7 @@ def generate_INLU_parallel(mul=0, anzo=7, indep=1, frag=[]):
     with open('INLU', 'w') as outfile:
         outfile.write(s)
     return
-def generate_INLU(mul=0, anzo=7, frag=[], fn='INLU'):
+def generate_INLU_nofn(mul=0, anzo=7, frag=[], fn='INLU'):
     out = ''
     #   NBAND1,NBAND2,LAUS,KAUS,MKAUS,LALL
     out += '  9  2  0  0  0\n'
@@ -438,21 +438,6 @@ def generate_INLU(mul=0, anzo=7, frag=[], fn='INLU'):
     with open(fn, 'w') as outfile:
         outfile.write(out)
     return
-
-def generate_INOB_file_indep(fr, anzO, fn='INOB', indep=0):
-    # INDEP = -1 (write header, parallel) +1 (write single files) 0 (serial version)
-    #                IBOUND => ISOSPIN coupling allowed
-    out = '  0  2  2  1%3d\n' % indep
-    for n in range(anzO):
-        out += '  1'
-    out += '\n  4\n%3d  3\n' % len(fr)
-    for n in fr:
-        out += elem_spin_prods[n]
-    for n in range(len(fr)):
-        for m in range(len(fr)):
-            out += '%s_%s\n' % (fr[n], fr[m])
-    with open(fn, 'w') as outfile:
-        outfile.write(out)
 
 def generate_INEN_rhs(bas,
                 jay,
@@ -517,6 +502,21 @@ def generate_INEN_bdg(bas,
     with open(fileName, 'w') as outfile:
         outfile.write(head + out)
 
+
+def generate_INOB_file_indep(fr, anzO, fn='INOB', indep=0):
+    # INDEP = -1 (write header, parallel) +1 (write single files) 0 (serial version)
+    #                IBOUND => ISOSPIN coupling allowed
+    out = '  0  2  2  1%3d\n' % indep
+    for n in range(anzO):
+        out += '  1'
+    out += '\n  4\n%3d  3\n' % len(fr)
+    for n in fr:
+        out += elem_spin_prods[n]
+    for n in range(len(fr)):
+        for m in range(len(fr)):
+            out += '%s_%s\n' % (fr[n], fr[m])
+    with open(fn, 'w') as outfile:
+        outfile.write(out)
 def generate_INOB_parallel(anzo=13, indep=1, fr=[]):
     global elem_spin_prods
     out = ''
@@ -533,7 +533,6 @@ def generate_INOB_parallel(anzo=13, indep=1, fr=[]):
     with open('INOB', 'w') as outfile:
         outfile.write(out)
     return
-
 def generate_INOB_file(anzo=13, fr=[], fn='INOB'):
     out = ''
     out += '  8  3  3  3\n'
@@ -826,7 +825,7 @@ def generate_INQUA_file(intwi=[], relwi=[], LREG='', anzo=13, outFileNm='INQUA')
     #  1   :   0  0  1S0         0
     #  2   :   1  0  3S1         2
 
-def generate_inqua_file_seq(intwi=[], relwi=[], LREG='', anzo=13, outFileNm='INQUA'):
+def generate_INQUA_file_seq(intwi=[], relwi=[], LREG='', anzo=13, outFileNm='INQUA'):
     s = ''
     # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
     s += ' 10  8  9  3 00  0  0  0  0\n'
