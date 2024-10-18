@@ -423,7 +423,7 @@ def generate_INLU_parallel(mul=0, anzo=7, indep=1, frag=[]):
     with open('INLU', 'w') as outfile:
         outfile.write(s)
     return
-def generate_INLU(mul=0, anzo=7, frag=[], fn='INLU'):
+def generate_INLU_nofn(mul=0, anzo=7, frag=[], fn='INLU'):
     out = ''
     #   NBAND1,NBAND2,LAUS,KAUS,MKAUS,LALL
     out += '  9  2  0  0  0\n'

@@ -40,7 +40,7 @@ def blunt_ev(set,
     generate_INLU(8, fn='INLUCN', fr=lfrag, indep=set.parallel)
     #os.system(bin_path + 'LUDW_CN.exe')
     run_external(binaryPath + 'LUDW_CN.exe')
-    generate_INOB_file(sfrag, 8, fn='INOB', indep=set.parallel)
+    generate_INOB_file_indep(sfrag, 8, fn='INOB', indep=set.parallel)
     #os.system(bin_path + 'KOBER.exe')
     run_external(binaryPath + 'KOBER.exe')
     generate_INQUAN_file(intwi=intws, relwi=relws, potf=NNpotName, inquaout='INQUA_N_0')
@@ -76,7 +76,7 @@ def blunt_ev(set,
         generate_INLU(8, fn='INLU', fr=lfrag, indep=set.parallel)
         #os.system(bin_path + 'DRLUD.exe')
         run_external(binaryPath + 'DRLUD.exe')
-        generate_INOB_file(sfrag, 15, fn='INOB', indep=set.parallel)
+        generate_INOB_file_indep(sfrag, 15, fn='INOB', indep=set.parallel)
         #os.system(bin_path + 'DROBER.exe')
         run_external(binaryPath + 'DROBER.exe')
         generate_INQUAN_file(intwi=intws,
