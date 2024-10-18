@@ -13,7 +13,6 @@ from three_particle_functions import *
 import multiprocessing
 from multiprocessing.pool import ThreadPool
 
-
 def span_initial_basis(
         set,
         basisType,
@@ -332,7 +331,6 @@ def span_initial_basis(
     shutil.copy('INEN', 'inen_seed')
     return np.core.records.fromfile('MATOUTB', formats='f8', offset=4)
 
-
 def span_population(
         set,
         basisType,
@@ -516,10 +514,10 @@ def span_population(
     generate_INLU(8, fn='INLUCN', fr=lfrags2, indep=set.parallel)
     #os.system(set.BINBDGpath + 'LUDW_CN.exe')
     run_external(set.bindingBinDir + 'LUDW_CN.exe')
-    generate_INOB_file(sfrags2, 8, fn='INOB', indep=set.parallel)
+    generate_INOB_file_indep(sfrags2, 8, fn='INOB', indep=set.parallel)
     #os.system(set.BINBDGpath + 'KOBER.exe')
     run_external(set.bindingBinDir + 'KOBER.exe')
-    generate_INOB_file(sfrags2, 15, fn='INOB', indep=set.parallel)
+    generate_INOB_file_indep(sfrags2, 15, fn='INOB', indep=set.parallel)
     #os.system(set.BINBDGpath + 'DROBER.exe')
     run_external(set.bindingBinDir + 'DROBER.exe')
 
@@ -558,7 +556,6 @@ def span_population(
     #    print(cc)
 
     return cand_list, sbas
-
 
 def end3(para, send_end):
     #   0     1     2    3            4    5        6     7      8                  9        10       11       12      13
