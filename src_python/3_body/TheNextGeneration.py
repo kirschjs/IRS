@@ -15,9 +15,9 @@ from genetic_width_growth import *
 from PSI_parallel_M import span_initial_basis, span_population, end3
 from settings import *
 from smart_diag import *
-from scipy.stats import truncnorm#, norm
+from scipy.stats import truncnorm  #, norm
 
-print('>>>>>>>>> start of NextToNewestGeneration.py')
+print('>>>>>>>>> start of TheNextGeneration.py')
 
 uniqueDirectory = sys.argv[1]
 MPIProcesses = sys.argv[2]
@@ -130,9 +130,8 @@ for basisType in basisTypes:
     minimalConditionNumber = 1e-10
     # energy ranges in which a larger number of Hamiltonian eigenvalues
     # correspond to a "stronger" basis individuum
-    targetEVinterval = [-9., -0.5] if basisType == set.initialChannel else [
-        -3., 80.0
-    ]
+    targetEVinterval = [-9., -0.5
+                        ] if basisType == set.initialChannel else [-3., 80.0]
     muta_initial = 0.1
     randomAdmissionThreshold = 0.85
 
@@ -589,18 +588,21 @@ for basisType in basisTypes:
         lfrags = np.array(civs[0][0])[:, 1].tolist()
         sfrags = np.array(civs[0][0])[:, 0].tolist()
         generate_INLU(8,
-                fn=set.resultsDirectory + 'INLU_%s' % suf,
-                fr=lfrags,
-                indep=-1)
+                      fn=set.resultsDirectory + 'INLU_%s' % suf,
+                      fr=lfrags,
+                      indep=-1)
         generate_INLU(8,
-                fn=set.resultsDirectory + 'INLUCN_%s' % suf,
-                fr=lfrags,
-                indep=-1)
-        generate_INOB_file(sfrags, 8, fn=set.resultsDirectory + 'INOB_%s' % suf, indep=-1)
+                      fn=set.resultsDirectory + 'INLUCN_%s' % suf,
+                      fr=lfrags,
+                      indep=-1)
         generate_INOB_file(sfrags,
-                15,
-                fn=set.resultsDirectory + 'DRINOB_%s' % suf,
-                indep=-1)
+                           8,
+                           fn=set.resultsDirectory + 'INOB_%s' % suf,
+                           indep=-1)
+        generate_INOB_file(sfrags,
+                           15,
+                           fn=set.resultsDirectory + 'DRINOB_%s' % suf,
+                           indep=-1)
 
         shutil.copy('INQUA_N', set.resultsDirectory + 'INQUA_V18_%s' % suf)
         shutil.copy('INEN', set.resultsDirectory + 'INEN_%s' % suf)
