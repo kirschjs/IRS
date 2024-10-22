@@ -18,7 +18,7 @@ from settings import *
 from three_particle_functions import *
 
 print('>>>>>>>>> start of A3_lit_M.py')
-uniqueDirectory = sys.argv[1]  # before bridgeA3
+uniqueDirectory = sys.argv[1]  # before bridgeA3 settings is used (which takes this as an input)
 MPIProcesses = sys.argv[2]
 
 set = A3settings(uniqueDirectory=uniqueDirectory,

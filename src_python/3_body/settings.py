@@ -6,7 +6,7 @@ import time
 
 import numpy as np
 
-###### thje following need tp be set to apropriate va;ues
+###### the following need to be set to apropriate values
 dbg = False  # turn debugging on
 csf = True  # am I runninmg on csf?
 print("########################")
