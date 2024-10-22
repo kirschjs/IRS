@@ -593,53 +593,51 @@ def generate_INEN_file(BUECO,
     outfile.close()
     return
 
-def retrieve_D_M(inqua, npoli):
+def retrieve_basis_data(inqua, numberOfPolynomials):
 
-    relw = []
-    frgm = []
-    inq = [line for line in open(inqua)]
-
+    relativeWidths = []
+    decompositionInfo = []
+    inquaText = [line for line in open(inqua)]
     lineNR = 0
-    while lineNR < len(inq):
-        if ((re.search('Z', inq[lineNR]) != None) |
-            (re.search('z', inq[lineNR]) != None)):
+    while lineNR < len(inquaText):
+        if ((re.search('Z', inquaText[lineNR]) != None) |
+            (re.search('z', inquaText[lineNR]) != None)):
             break
         lineNR += 1
-    if lineNR == len(inq):
-        print('no <Z> qualifier found in <INQUA>!')
-        exit()
-
-    while ((lineNR < len(inq)) & (inq[lineNR][0] != '/')):
+    if lineNR == len(inquaText):
+        print('FATAL: no <Z> qualifier found in <INQUA>!')
+        exit(-1)
+    while ((lineNR < len(inquaText)) & (inquaText[lineNR][0] != '/')):
         try:
-            anziw = int(inq[lineNR].split()[0])
+            numberOfWidths = int(inquaText[lineNR].split()[0])
         except:
             break
         #print('Two-body caclulation with %d polynoms per width set.' % anziw)
-        if anziw != int(np.max([1, npoli])):
-            print('Number of polynoms inconsistent with deuteron INPUT.')
-            print('anziw = %d != npoli = %d' % (anziw, npoli))
+        if numberOfWidths != int(np.max([1, numberOfPolynomials])):
+            print('Number of polynomials inconsistent with deuteron INPUT.')
+            print('numberOfWidths = %d != numberOfPolynomials = %d' % (numberOfWidths, numberOfPolynomials))
             exit()
 
-        anzrw = int(inq[lineNR + 1].split()[1])
+        anzrw = int(inquaText[lineNR + 1].split()[1])
 
-        frgm.append([anziw, anzrw])
+        decompositionInfo.append([numberOfWidths, anzrw])
 
         relwtmp = []
-        relwtmp.append([float(rrw) for rrw in inq[lineNR + 3].split()])
-        relw += relwtmp
+        relwtmp.append([float(rrw) for rrw in inquaText[lineNR + 3].split()])
+        relativeWidths += relwtmp
 
-        lineNR += 2 + 2 + 2 * anziw
-        if (lineNR >= len(inq)):
+        lineNR += 2 + 2 + 2 * numberOfWidths
+        if (lineNR >= len(inquaText)):
             break
 
-    rw = relw
+    rw = relativeWidths
 
     with open('intwD.dat', 'wb') as f:
         for ws in rw:
             np.savetxt(f, [ws], fmt='%12.4f', delimiter=' ; ')
     f.close()
 
-    return rw, frgm
+    return rw, decompositionInfo
 
 def h2_inen_str_pdp(relw, costr, j=0, sc=0, ch=[1]):
     s = ''

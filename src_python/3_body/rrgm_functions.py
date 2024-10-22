@@ -9,8 +9,6 @@ y(x)=a^(x^base)-b
 has the desired properties y(0)=const.=y(1) while for any x in (0,1) it 
 remains flat for larger "bases"
 """
-
-
 def logspaceG(start, end, base, number):
 
     widths = []
@@ -81,7 +79,7 @@ def find_error(ifi='OUTPUT'):
     out = [line for line in open(ifi)]
     for nj in range(1, len(out)):
         if ((out[nj].strip() == "FEHLERHAFT") | ("FALSCH" in out[nj])):
-            print("TDR2ENDMAT: DIAGONALISATION FEHLERHAFT")
+            print("TDR2ENDMAT: DIAGONALISATION FAILED")
             exit()
     return
 
@@ -223,13 +221,8 @@ def sparsifyPair(menge_a, menge_b, mindist, anzCL):
 
 
 #def wid_gen(add=10, addtype='top', w0=w120, ths=[1e-5, 8e2, 0.1], sca=1.):
-
-
-def wid_gen(add=10,
-            addtype='top',
-            w0=[10, 1, 0.1],
-            ths=[1e-5, 8e2, 0.1],
-            sca=1.):
+#change w0
+def wid_gen(add=10, addtype='top', w0=[10, 1, 0.1], ths=[1e-5, 8e2, 0.1], sca=1.):
     tmp = []
     # rescale but consider upper and lower bounds
     for ww in w0:

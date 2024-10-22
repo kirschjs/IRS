@@ -10,12 +10,14 @@ from multiprocessing.pool import ThreadPool
 import datetime
 import numpy as np
 from scipy.io import FortranFile
-from bridgeA3 import *
+#from bridgeA3 import *
+from bridgeA3 import A3settings
 # CG(j1, m1, j2, m2, j3, m3)
 from clg import CG
-from rrgm_functions import *
-from settings import *
-from three_particle_functions import *
+from rrgm_functions import allowedMs
+from settings import NEWLINE_SIZE_IN_BYTES, numeric_format
+#from three_particle_functions import *
+from three_particle_functions import retrieve_basis_data, generate_INEN_bare, generate_INQUA_file, generate_INLU, generate_INOB_file
 
 print('>>>>>>>>> start of A3_lit_M.py')
 uniqueDirectory = sys.argv[1]  # before bridgeA3

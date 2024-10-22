@@ -120,15 +120,6 @@ class A2settings:
     nnnPotLabel = 'urbana9_AK_neu'  #'nnn_pot'  #'pot_nnn_06'  #
     nnnPotFile = jobDirectory + '/../../data/%s' % nnnPotLabel
 
-    BINBDGpath = pathbase + '/src_fortran'
-    BINLITpath = pathbase + '/src_fortran'
-    BINLITpathPOL = pathbase + '/src_fortran'
-
-    mpii = '137'
-    potnn = pathbase + '/data/AV18m'  #'/data/BONN'  #'/data/AV4.14'  #
-
-    potnnn = pathbase + '/data/urbana9_AK_neu'
-
     new_deuteron = True
     # convention: bound-state-expanding BVs: (1-8), i.e., 8 states per rw set => nzf0*8
     channels = {

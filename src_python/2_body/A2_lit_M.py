@@ -10,12 +10,12 @@ from multiprocessing.pool import ThreadPool
 import datetime
 import numpy as np
 from scipy.io import FortranFile
-from bridgeA2 import *
+from bridgeA2 import A2settings
 # CG(j1, m1, j2, m2, j3, m3)
 from clg import CG
-from rrgm_functions import *
-from settings import *
-from two_particle_functions import *
+from rrgm_functions import allowedMs
+from settings import NEWLINE_SIZE_IN_BYTES, numeric_format
+from two_particle_functions import retrieve_basis_data, generate_INQUA_file, generate_INLU, generate_INOB_file, generate_INEN_bare
 
 print('>>>>>>>>> start of A3_lit_M.py')
 uniqueDirectory = sys.argv[1]  # before bridgeA3
@@ -53,13 +53,13 @@ with open(set.resultsDirectory + 'kRange.dat', 'wb') as f:
     f.truncate()
 f.close()
 suffix = '_ref'
-intWidthsInitial, relativeWidthsInitial, fragmentInfoInitial = retrieve_basis_data(set.resultsDirectory + 'INQUA_V18' +
+relativeWidthsInitial, fragmentInfoInitial = retrieve_basis_data(set.resultsDirectory + 'INQUA_V18' +
                                        suffix)
 initialBasisDimensionsRef = len(sum(sum(relativeWidthsInitial, []), []))
 
 for basisNumber in range(numScatteringBases):
     suffix = '_fin-%d' % int(basisNumber + 1)
-    intWidthsFinal, relativeWidthsFInal, fragmentInfoFinal = retrieve_he3_M(set.resultsDirectory +
+    relativeWidthsFInal, fragmentInfoFinal = retrieve_basis_data(set.resultsDirectory +
                                                     'INQUA_V18' + suffix)
     finalBasisDimensionsRef = len(sum(sum(relativeWidthsFInal, []), []))
     with open(
@@ -68,7 +68,7 @@ for basisNumber in range(numScatteringBases):
         np.savetxt(f, [initialBasisDimensionsRef, finalBasisDimensionsRef], fmt='%d')
         f.seek(NEWLINE_SIZE_IN_BYTES, 2)
         f.truncate()
-f.close()
+    f.close()
 
     if 'rhs' in set.calculations:
         initialBasisDimension = sum([
@@ -148,9 +148,9 @@ f.close()
                     rwtttmp = relativeWidthsInitial + [
                         relwLIT[sum([len(fgg) for fgg in intwLIT[:calculationRepeat]]):
                                 sum([len(fgg) for fgg in intwLIT[:calculationRepeat]]) +
-                                len(intwLIT[calculationRepeat])]
+                                len(relwLIT[calculationRepeat])]
                     ]
-                    generate_INQUA_file(intwi=intWidthsInitial + [intwLIT[calculationRepeat]],
+                    generate_INQUA_file(intwi=relativeWidthsInitial+ [intwLIT[calculationRepeat]],
                                  relwi=rwtttmp,
                                  anzo=11,
                                  LREG='  1  0  0  0  0  0  0  0  0  1  1',
@@ -164,7 +164,7 @@ f.close()
                               fn=set.resultsDirectory + 'tmp_%d/INOB' %
                               (calculationRepeat))
             leftpar = int(1 + 0.5 *
-                          (1 + (-1)**(int(channels[scatteringChannel][0][0][0])))) # L only???
+                          (1 + (-1)**(int(set.channels[scatteringChannel][0][0][0])))) # L only???
 
             def cal_rhs_lu_ob_qua(para, procnbr):
                 workerDirectory = set.resultsDirectory + 'tmp_%d' % para
@@ -235,7 +235,7 @@ f.close()
             #        litbas = [np.loadtxt(wfn).astype(int)[0]]
             #        print(litbas)
             for calculationRepeat in range(len(lfragsFinal)):
-                bsbv = sum([len(b) for b in intWidthsInitial])
+                bsbv = sum([len(b) for b in relativeWidthsInitial])
                 parameter_set = []
                 bvrange = range(
                     sum([len(z) for z in intwLIT[:calculationRepeat]]) + 1,
@@ -360,7 +360,7 @@ f.close()
                                 print('(%d,%d;%s,%s|%s,%s) = %f' %
                                     (set.operatorL, mL, str(set.J0),
                                     str(mJ - mL), str(JFinal), str(mJ), clebsch))
-                            rhstmp = []
+                                rhstmp = []
                                 for calculationRepeat in range(len(lfragsFinal)):
                                     fna = "%d_S_%s_%s_%s.lit" % (calculationRepeat, JFinals,
                                                                 mJs, mLs)
@@ -370,13 +370,13 @@ f.close()
                                     print(
                                         'RHS component missing: Z,In,MIn,ML:%d,%d,%d,%d'
                                             % (calculationRepeat, JFinal, mJ, mL))
-                                        print('Clebsch = ', clebsch)
-                                        print('file <%s> not found.' % fna)
+                                    print('Clebsch = ', clebsch)
+                                    print('file <%s> not found.' % fna)
                                 fortranIn = FortranFile(
                                         kompo_vects_bare[0], 'r').read_reals()#(float) # float is a real *8, so doesn't need specifying
                                     #print(fortranIn[::100])
                                 tDim = int(np.sqrt(np.shape(fortranIn)[0]))
-                                    OutBasDimFr = int(tDim - initialBasisDimensionsRef)
+                                OutBasDimFr = int(tDim - initialBasisDimensionsRef)
                                     #print(
                                     #    'processing final fragment: %s\ndim(he_bare) = %d ; dim(fin) = %d ; dim(total) = %d'
                                     #    % (fna, HelBasDimRef, OutBasDimFr, tDim))
@@ -401,10 +401,10 @@ f.close()
                     fortranOut = open(outstr, 'wb+')
                         #print(rhsInMIn)
                         #exit()
-                        rhsInMInF = np.asfortranarray(rhsInMIn, numeric_format)
+                    rhsInMInF = np.asfortranarray(rhsInMIn, numeric_format)
                     rhsInMInF.tofile(fortranOut)
                     fortranOut.close()
-                    else:
+                else:
                     #only stretched ms: MJ=Jfinal, MJ0=J0 and thus ML=Jfinal -J0
                     mJ = JFinal
                     mL = JFinal - set.J0

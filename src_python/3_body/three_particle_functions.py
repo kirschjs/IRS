@@ -214,7 +214,6 @@ def reduce_basis(typ='',
     print(' %d-dim MS: B(3)=%4.3f |' % (basis_size, bdg_end), )
     return bdg_end, basis_size
 
-
 def shrink_widths(ch='612-05m',
               size3=90,
               ncycl=350,
@@ -248,7 +247,6 @@ def shrink_widths(ch='612-05m',
     os.system('cp ' + 'COEFF ' + 'COEFF_' + ch)
     os.system('cp ' + 'OUTPUT ' + 'out_' + ch)
     print('reduction to %d widths complete.' % size3)
-
 
 def generate_INQUA_21(
         basis3,
@@ -382,12 +380,10 @@ def generate_INQUA_21(
             outfile.write(outs)
     return block_stru
 
-
 def insam(anz, fn='INSAM'):
     out = '  1  1\n  1%3d\n' % anz
     with open(fn, 'w') as outfile:
         outfile.write(out)
-
 
 def generate_INLU(anzO, fn='INLU', fr=[], indep=0):
     # INDEP = -1 (write header, parallel) +1 (write single files) 0 (serial version)
