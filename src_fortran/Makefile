@@ -12,11 +12,17 @@ LIBS    = -L${MKLROOT} -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 #-
 clean:
 	rm -f *.o core
 
+QUAFL_N: QUAFL_N.o par/QUAF
+	$(F77) $(FFLAGS) -o QUAFL_N.exe QUAFL_N.o 
+
 QUAFL_M: QUAFL_M.o par/QUAF
 	$(F77) $(FFLAGS) -o QUAFL_M.exe QUAFL_M.o 
 
 LUDW_CN: LUDW_CN.o par/LUCN
 	$(F77) $(FFLAGS) -o LUDW_CN.exe LUDW_CN.o $(LIBS)
+
+DRQUA_AK_N: DRQUA_AK_N.o par/DRQUA_AK
+	$(F77) $(FFLAGS) -o DRQUA_AK_N.exe DRQUA_AK_N.o $(LIBS)
 
 DRQUA_AK_M: DRQUA_AK_M.o par/DRQUA_AK
 	$(F77) $(FFLAGS) -o DRQUA_AK_M.exe DRQUA_AK_M.o $(LIBS)
@@ -45,6 +51,9 @@ DROBER: DROBER.o par/DROBER
 KOBER: KOBER.o par/KOBER
 	$(F77) $(FFLAGS) -o KOBER.exe KOBER.o $(LIBS)
 
+KOBERp: KOBERp.o par/KOBER
+	$(F77) $(FFLAGS) -o KOBERp.exe KOBERp.o $(LIBS)
+
 juelmanoo: juelmanoo.o par/juelma
 	$(F77) $(FFLAGS) -o juelmanoo.exe juelmanoo.o $(LIBS)
 
@@ -57,4 +66,4 @@ jquelmanoo: jquelmanoo.o par/jquelma
 jenelmasnoo: jenelmasnoo.o par/jenelmas
 	$(F77) $(FFLAGS) -o jenelmasnoo.exe jenelmasnoo.o  $(LIBS)
 
-all: LUDW_CN KOBER DROBER DRLUD QUAFL_M DRQUA_AK_M DR2END_NORMAL TDR2END_NORMAL TDR2END_PYpoolnoo juelmanoo jobelmanoo jquelmanoo jenelmasnoo clean
+all: LUDW_CN KOBER KOBERp DROBER DRLUD QUAFL_M QUAFL_N DRQUA_AK_M DRQUA_AK_N DR2END_NORMAL TDR2END_NORMAL TDR2END_PYpoolnoo juelmanoo jobelmanoo jquelmanoo jenelmasnoo clean

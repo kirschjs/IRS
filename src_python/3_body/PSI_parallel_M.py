@@ -13,7 +13,6 @@ from three_particle_functions import *
 import multiprocessing
 from multiprocessing.pool import ThreadPool
 
-
 def span_initial_basis(
         set,
         basisType,
@@ -46,7 +45,7 @@ def span_initial_basis(
     # orbital-angular-momentum dependent upper bound '=' UV cutoff (narrowest state)
     iLcutoff = set.upperboundWidthiL
     rLcutoff = set.upperboundWidthiR
-    if basisType == set.boundstateChannel:
+    if basisType == set.initialChannel:
         nwint = ini_dims[0]
         nwrel = ini_dims[1]
         rel_scale = 1.
@@ -96,7 +95,7 @@ def span_initial_basis(
         ]
 
     #  -- relative widths --------------------------------------------------
-    if basisType == set.boundstateChannel:
+    if basisType == set.initialChannel:
         wir, wfr, nwr = rel_scale * ini_grid_bounds[
             2], rel_scale * ini_grid_bounds[3], nwrel * len(lit_w[frg])
     else:
@@ -212,13 +211,13 @@ def span_initial_basis(
     if os.path.isdir(workingDirectory + '/eob/') == False:
         os.makedirs(workingDirectory + '/eob/', exist_ok=True)
         os.chdir(workingDirectory + '/eob/')
-        generate_INOB_file(channelLabels, 8, fn='INOB', indep=+1)
+        generate_INOB_file_indep(channelLabels, 8, fn='INOB', indep=+1)
         #os.system(set.BINBDGpath + 'KOBER.exe')
         run_external(set.bindingBinDir + 'KOBER.exe')
     if os.path.isdir(workingDirectory + '/eob-tni/') == False:
         os.makedirs(workingDirectory + '/eob-tni/', exist_ok=True)
         os.chdir(workingDirectory + '/eob-tni/')
-        generate_INOB_file(channelLabels, 15, fn='INOB', indep=+1)
+        generate_INOB_file_indep(channelLabels, 15, fn='INOB', indep=+1)
         #os.system(set.BINBDGpath + 'DROBER.exe')
         run_external(set.bindingBinDir + 'DROBER.exe')
     #and more ang momenta
@@ -242,10 +241,10 @@ def span_initial_basis(
     generate_INLU(8, fn='INLUCN', fr=lfrags2, indep=set.parallel)
     #os.system(set.BINBDGpath + 'LUDW_CN.exe')
     run_external(set.bindingBinDir + 'LUDW_CN.exe')
-    generate_INOB_file(sfrags2, 8, fn='INOB', indep=set.parallel)
+    generate_INOB_file_indep(sfrags2, 8, fn='INOB', indep=set.parallel)
     #os.system(set.BINBDGpath + 'KOBER.exe')
     run_external(set.bindingBinDir + 'KOBER.exe')
-    generate_INOB_file(sfrags2, 15, fn='INOB', indep=set.parallel)
+    generate_INOB_file_indep(sfrags2, 15, fn='INOB', indep=set.parallel)
     #os.system(set.BINBDGpath + 'DROBER.exe')
     run_external(set.bindingBinDir + 'DROBER.exe')
     generate_INQUAN_file(intwi=widi, relwi=widr, potf=set.nnPotFile)
@@ -332,7 +331,6 @@ def span_initial_basis(
     shutil.copy('INEN', 'inen_seed')
     return np.core.records.fromfile('MATOUTB', formats='f8', offset=4)
 
-
 def span_population(
         set,
         basisType,
@@ -368,7 +366,7 @@ def span_population(
     # orbital-angular-momentum dependent upper bound '=' UV cutoff (narrowest state)
     iLcutoff = set.upperboundWidthiL
     rLcutoff = set.upperboundWidthiR
-    if basisType == set.boundstateChannel:
+    if basisType == set.initialChannel:
         nwint = ini_dims[0]
         nwrel = ini_dims[1]
         rel_scale = 1.
@@ -439,7 +437,7 @@ def span_population(
 
         #  -- relative widths --------------------------------------------------
 
-        if basisType == set.boundstateChannel:
+        if basisType == set.initialChannel:
             wir, wfr, nwr = rel_scale * ini_grid_bounds[
                 2], rel_scale * ini_grid_bounds[3], nwrel * len(lit_w[frg])
         else:
@@ -516,10 +514,10 @@ def span_population(
     generate_INLU(8, fn='INLUCN', fr=lfrags2, indep=set.parallel)
     #os.system(set.BINBDGpath + 'LUDW_CN.exe')
     run_external(set.bindingBinDir + 'LUDW_CN.exe')
-    generate_INOB_file(sfrags2, 8, fn='INOB', indep=set.parallel)
+    generate_INOB_file_indep(sfrags2, 8, fn='INOB', indep=set.parallel)
     #os.system(set.BINBDGpath + 'KOBER.exe')
     run_external(set.bindingBinDir + 'KOBER.exe')
-    generate_INOB_file(sfrags2, 15, fn='INOB', indep=set.parallel)
+    generate_INOB_file_indep(sfrags2, 15, fn='INOB', indep=set.parallel)
     #os.system(set.BINBDGpath + 'DROBER.exe')
     run_external(set.bindingBinDir + 'DROBER.exe')
 
@@ -558,7 +556,6 @@ def span_population(
     #    print(cc)
 
     return cand_list, sbas
-
 
 def end3(para, send_end):
     #   0     1     2    3            4    5        6     7      8                  9        10       11       12      13
