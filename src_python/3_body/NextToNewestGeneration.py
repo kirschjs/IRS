@@ -52,12 +52,12 @@ except IndexError:
     basisTypes = [set.initialChannel] + set.ScatteringChannels  #
 
 if set.initialChannel in basisTypes:
-    if os.path.isdir(set.helionDirectory) != False:
+    if os.path.isdir(set.nucleusDirectory) != False:
         print('<Note> removing the existing helion folder: %s.' %
-              set.helionDirectory)
+              set.nucleusDirectory)
         #os.system('rm -rf ' + set.helionPath)
-        shutil.rmtree(set.helionDirectory)
-    os.makedirs(set.helionDirectory + 'basis_struct/', exist_ok=True)
+        shutil.rmtree(set.nucleusDirectory)
+    os.makedirs(set.nucleusDirectory + 'basis_struct/', exist_ok=True)
 
 for scatteringChannel in set.ScatteringChannels:
     if scatteringChannel in basisTypes:
@@ -163,7 +163,7 @@ for basisType in basisTypes:
 
     # > nState > produce/optimize/grow multiple bases with pseudo-random initial seeds
     for basisNo in range(NumberOfScatteringBasisFunctions):
-        workDir = set.helionDirectory if basisType == set.initialChannel else finalStatePaths[
+        workDir = set.nucleusDirectory if basisType == set.initialChannel else finalStatePaths[
             basisNo]
         basisPath = workDir + 'basis_struct/'
         os.chdir(workDir)

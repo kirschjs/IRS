@@ -17,13 +17,14 @@ from rrgm_functions import allowedMs
 from settings import NEWLINE_SIZE_IN_BYTES, numeric_format
 from two_particle_functions import retrieve_basis_data, generate_INQUA_file, generate_INLU, generate_INOB_file, generate_INEN_bare
 
-print('>>>>>>>>> start of A3_lit_M.py')
+print('>>>>>>>>> start of A2_lit_M.py')
 uniqueDirectory = sys.argv[1]  # before bridgeA3
 MPIProcesses = sys.argv[2]
 
-set = A2settings(uniqueDirectory=uniqueDirectory,
+set = Asettings(uniqueDirectory=uniqueDirectory,
                  shouldExist=False,
-                 mpiProcesses=MPIProcesses)
+                 mpiProcesses=MPIProcesses,
+                 nucleus='2D')
 
 set.resultsDirectory = set.backupDirectory
 

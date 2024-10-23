@@ -13,25 +13,40 @@ from settings import *
 #from three_particle_functions import *
 
 
-class A2settings:
+class Asettings:
 
-    def __init__(self, uniqueDirectory, shouldExist, mpiProcesses):
+    def __init__(self, uniqueDirectory, shouldExist, mpiProcesses, nucleus):
         """
             uniqueDirectory:    a unique directory for this run
             shouldExist:        should the unique directory already exist (or should it not)
             mpiProcesses:       number of MPI processes to run
+            nucleus:            the nucleus to run the calculation (number/name)
         """
-
-        self.backupDirectory = os.getenv(
-            'HOME'
-        ) + '/scratch/compton_IRS/' + uniqueDirectory + '/'  # where results are stored at the end
+        if (nucleus == "2D"):
+            nucleons=2
+            name="D"
+            bindingEnergy = 2.224
+        elif (nucleus == "3H"):
+            nucleons=3
+            name="H"
+            bindingEnergy = 8.482
+        elif (nucleus == "3He"):
+            nucleons=3
+            name="He"
+            bindingEnergy = 7.72
+        elif (nucleus == "4He"):
+            nucleons=4
+            name="He"   
+            bindingEnergy = 28.3
+        self.backupDirectory = os.getenv('HOME') + '/scratch/compton_IRS/' + uniqueDirectory + '/' 
+         # where results are stored at the end
         if os.path.exists(self.backupDirectory + '/results'):
             print(
                 "Use existing results folder/Create backup and write in empty folder: (press Enter)/(type B)?"
             )
             ctn = input()
             if ctn == 'B':
-                # safe exisitng results folder before creating a new one
+                # save existing results folder before creating a new one
                 resdest = self.backupDirectory + 'latestresults_' + datetime.datetime.now(
                 ).strftime('%d-%b-%Y--%H-%M-%S')
                 shutil.move(self.backupDirectory + 'results/', resdest)
@@ -68,8 +83,8 @@ class A2settings:
 
         self.resultsDirectory = self.temporaryDirectory + 'results/'
         os.makedirs(self.resultsDirectory, exist_ok=True)
-        self.helionDirectory = self.temporaryDirectory + 'he3/'
-        os.makedirs(self.helionDirectory, exist_ok=True)
+        self.nucleusDirectory = self.temporaryDirectory + nucleus+'/' 
+        os.makedirs(self.nucleusDirectory, exist_ok=True)
         # backup in home, and hence, we check whether there is enough space *there*
         (totSpace, usedSpace, freeSpace) = shutil.disk_usage(os.getenv('HOME'))
         self.backupFree = int(0.1 * totSpace)
@@ -95,6 +110,7 @@ class A2settings:
         'rhs-couple',
     #        'allM',
     ]
+    
 
     jobDirectory = os.getcwd()
 
@@ -120,7 +136,7 @@ class A2settings:
     nnnPotLabel = 'urbana9_AK_neu'  #'nnn_pot'  #'pot_nnn_06'  #
     nnnPotFile = jobDirectory + '/../../data/%s' % nnnPotLabel
 
-    new_deuteron = True
+    new_deuteron = True # needed?
     # convention: bound-state-expanding BVs: (1-8), i.e., 8 states per rw set => nzf0*8
     channels = {
         # deuteron
@@ -156,8 +172,11 @@ class A2settings:
     photonEnergyStart = 0.1  #  enems_e converts to fm^-1, but HERE the value is in MeV
     photonEnergyStep = 1.0  #  delta E
 
-opME_th_low = 10**(-24)
-opME_th_up = 10**24
+#### what do we do with these global vbariables?
+
+
+opME_th_low = 1e-24
+opME_th_up = 1e24
 
 # deuteron/initial-state basis -------------------------------------------
 cluster_centers_per_zerl = 3

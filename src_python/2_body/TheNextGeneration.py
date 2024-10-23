@@ -9,26 +9,26 @@ import time
 from multiprocessing.pool import ThreadPool
 #import matplotlib.pyplot as plt
 
-from bridgeA3 import *
+from bridgeA2 import *
 from rrgm_functions import sortprint, polynomial_sum_weight
 from genetic_width_growth import *
-from PSI_parallel_M import span_initial_basis, span_population, end3
+from PSI_parallel_M import span_initial_basis, span_population, end3 # check if end3 was 3 body only...
 from settings import *
 from smart_diag import *
-from scipy.stats import truncnorm, norm
+from scipy.stats import truncnorm  #, norm
 
-print('>>>>>>>>> start of NextToNewestGeneration.py')
+print('>>>>>>>>> start of TheNextGeneration.py')
 
 uniqueDirectory = sys.argv[1]
 MPIProcesses = sys.argv[2]
 
-set = A3settings(uniqueDirectory=uniqueDirectory,
+set = A2settings(uniqueDirectory=uniqueDirectory,
                  shouldExist=False,
                  mpiProcesses=MPIProcesses)
 
 dbg = True
 with open(set.resultsDirectory + 'dtype.dat', 'w') as outputFile:
-    outputFile.write(dt)
+    outputFile.write(numeric_format)
 
 #os.chdir(set.litpath3He)
 
@@ -45,21 +45,20 @@ try:
     # for par_run.py operation
     ScatteringBasis = np.arange(int(argumentList[3]), int(argumentList[4]) + 1)
     NumberOfScatteringBasisFunctions = len(ScatteringBasis)
-    basisTypes = [set.boundstateChannel] if int(
+    basisTypes = [set.initialChannel] if int(
         argumentList[3]) < 0 else set.ScatteringChannels
 except IndexError:
     # for manual operation
     NumberOfScatteringBasisFunctions = 1
     ScatteringBasis = np.arange(1, NumberOfScatteringBasisFunctions + 1)
-    basisTypes = [set.boundstateChannel] + set.ScatteringChannels  #
+    basisTypes = [set.initialChannel] + set.ScatteringChannels  #
 
-if set.boundstateChannel in basisTypes:
-    if os.path.isdir(set.helionDirectory) != False:
-        print('<ECCE> removing the existing helion folder: %s.' %
-              set.helionDirectory)
-        #os.system('rm -rf ' + set.helionPath)
-        shutil.rmtree(set.helionDirectory)
-    os.makedirs(set.helionDirectory + 'basis_struct/', exist_ok=True)
+if set.initialChannel in basisTypes:
+    if os.path.isdir(set.nucleusDirectory) != False:
+        print('NOTE: removing the existing nucleus folder: %s.' %
+              set.nucleusDirectory)
+        shutil.rmtree(set.nucleusDirectory)
+    os.makedirs(set.nucleusDirectory + 'basis_struct/', exist_ok=True)
 
 for scatteringChannel in set.ScatteringChannels:
     if scatteringChannel in basisTypes:
@@ -68,9 +67,8 @@ for scatteringChannel in set.ScatteringChannels:
         ]
         for finalStatePath in finalStatePaths:
             if os.path.isdir(finalStatePath):
-                print('<ECCE> removing the existing final-state folder: %s' %
+                print('NOTE: removing the existing final-state folder: %s' %
                       finalStatePath)
-                #os.system('rm -rf ' + finalStatePath)
                 shutil.rmtree(finalStatePath)
             os.makedirs(finalStatePath + 'basis_struct/', exist_ok=True)
         break
@@ -83,14 +81,12 @@ for basisType in basisTypes:
     #  "realistic/test" setting  [8, 20, 8, 24]/[5, 4, 7, 4]
     # if you dare to exceed the 'realistic' dimensions, check and increase slightly NDIM in par.h
     # in src_fortran/UIX and src_fortran/V18 and possibly also in src_fortran/par/(DR)QUAF
-    initialDimensions = [5, 4, 10, 4]
+    initialDimensions = [5, 4, 6, 6]
 
     # lower and upper bounds for the grids from which the initial seed state is taken
     # 1-4: initial state, 1-2(jacobi1), 3-4(jacobi2)
     # 5-8: final   states,5-6(jacobi1), 7-8(jacobi2)
-    initialGridBounds = [
-        0.0002, 22.25, 0.0001, 22.5, 0.0001, 16.25, 0.0001, 18.5
-    ]
+    initialGridBounds = [0.002, 22.25, 0.001, 22.5, 0.001, 16.25, 0.001, 18.5]
 
     jValue = float(basisType.split('^')[0][-3:])
     jString = '%s' % str(jValue)[:3]
@@ -132,9 +128,8 @@ for basisType in basisTypes:
     minimalConditionNumber = 1e-10
     # energy ranges in which a larger number of Hamiltonian eigenvalues
     # correspond to a "stronger" basis individuum
-    targetEVinterval = [-9., -0.5] if basisType == set.boundstateChannel else [
-        -3., 80.0
-    ]
+    targetEVinterval = [-9., -0.5
+                        ] if basisType == set.initialChannel else [-3., 80.0]
     muta_initial = 0.1
     randomAdmissionThreshold = 0.85
 
@@ -153,19 +148,17 @@ for basisType in basisTypes:
     #plt.hist(r, density=True, bins=310)
     #plt.show()
 
-    deuteronBindingEnergy = 2.224
-    tritonBindingEnergy = 8.482
-    he3BindingEnergy = 7.72
+
     # get the initial, random basis seed to yield thresholds close to the results in a complete basis
-    channelThreshold = -1.0 if basisType == set.boundstateChannel else -0.00
+    channelThreshold = -1.0 if basisType == set.initialChannel else -1.00
     CgfCycles = 1
     # nRaces := |i|
-    nRaces = 1 if basisType == set.boundstateChannel else 2
+    nRaces = 1 if basisType == set.initialChannel else 4
     maximumOffspring = 6
 
     # > nState > produce/optimize/grow multiple bases with pseudo-random initial seeds
     for basisNo in range(NumberOfScatteringBasisFunctions):
-        workDir = set.helionDirectory if basisType == set.boundstateChannel else finalStatePaths[
+        workDir = set.nucleusDirectory if basisType == set.initialChannel else finalStatePaths[
             basisNo]
         basisPath = workDir + 'basis_struct/'
         os.chdir(workDir)
@@ -175,7 +168,7 @@ for basisType in basisTypes:
         groundstateEnergy = 42.0  # why 42.0?
         seed_attempts = 0
 
-        # set things up with a basis whose widths=variational parameters are randomly
+        # set things up with a basis whose widths=variational parameters are randomly chosen
         while ((groundstateEnergy >= channelThreshold)
                #| (groundstateEnergy < -1.2 * he3BindingEnergy)
                & (seed_attempts < maxNoIterations)):
@@ -213,9 +206,9 @@ for basisType in basisTypes:
                    groundstateEnergy, basCond))
 
             if ((groundstateEnergy >= channelThreshold) |
-                (groundstateEnergy < -1.2 * tritonBindingEnergy)):
+                (groundstateEnergy < -1.2 * set.tritonBindingEnergy)):
                 print(
-                    'ECCE! seed does not expand states with E<%f => new sowing attempt.'
+                    'NOTE! seed does not expand states with E<%f => new sowing attempt.'
                     % channelThreshold)
 
                 continue
@@ -234,14 +227,8 @@ for basisType in basisTypes:
                 np.array(ln.split()).astype(float).tolist()
                 for ln in open(basisPath + 'relw3heLIT_%s.dat' % basisType)
             ]
-            rws = []
-            rw0 = 0
-            for cfg in range(len(intwLIT)):
-                rws.append([])
-                for basisVector in range(len(intwLIT[cfg])):
-                    rws[-1].append(relwLIT[basisVector + rw0])
-                rw0 += len(intwLIT[cfg])
-            initialCiv = [cfgs, intwLIT, rws, []]
+
+            initialCiv = [cfgs, intwLIT, relwLIT, []]
             # set of unique angular, spin, and isospin configurations
             # ecce: each of these cfg's might appear multiple times if the
             # number of radial widths associated with it exceeds <bvma>
@@ -253,19 +240,11 @@ for basisType in basisTypes:
                     nbvc += 1
                     initialCiv[3] += [[
                         nbv,
-                        np.array(
-                            range(1, 1 +
-                                  len(initialCiv[2][cfg][nbvc - 1]))).tolist()
+                        np.array(range(1,
+                                       1 + len(initialCiv[2][cfg]))).tolist()
                     ]]
             #print('\n\nSeed Basis (naive):\n\n', initialCiv)
-            initialCiv = condense_basis(initialCiv,
-                                        MaxBVsPERcfg=set.basisVectorsPerBlock)
-            #print('\n\nSeed Basis (condensed):\n\n', initialCiv, '\n\n')
-            # purge just entire bv sets with identical internal width
-            print(
-                '\n> basType %s > basSet %d/%d: Stratifying the initial seed -- criterion: %s'
-                % (basisType, basisNo + 1, NumberOfScatteringBasisFunctions,
-                   purgeStr))
+
             t0 = time.perf_counter()
 
             testDiskUsage(set.temporaryDirectory, set.temporaryFree)
@@ -348,8 +327,8 @@ for basisType in basisTypes:
                                                            1.66)][2:]
 
                     print(
-                        'initial beauty/BE/cond thresholds for new pop. members:\n',
-                        qualCUT, gsCUT, basCondCUT)
+                        '\ninitial beauty/BE/cond thresholds for new pop. members: ',
+                        qualCUT, gsCUT, basCondCUT, '\n')
                     children = 0
 
                     while children < set.anzNewBV:
@@ -428,35 +407,32 @@ for basisType in basisTypes:
                                 daughter[1][0][wset] = list(rw1[::-1])
                                 son[1][0][wset] = list(rw2[::-1])
 
-                                # RW
-                                rws1 = []
-                                rws2 = []
-                                for n in range(bvsInCfg):
-                                    rwsInCfg = len(mother[1][1][wset][n])
+                            # RW update for all cfgs in order to retain direct-product option
+                            # set wset to 0 as all rel. width sets should be identical
+                            wset = 0
+                            rwsInCfg = len(mother[1][1][wset])
 
-                                    daughterson = [
-                                        intertwining(
-                                            mother[1][1][wset][n][m],
-                                            father[1][1][wset][n][m],
-                                            mutation_rate=muta_initial,
-                                            wMin=0.00001,
-                                            wMax=100.,
-                                            dbg=False,
-                                            def1=rv.rvs(),
-                                            def2=rv.rvs(),
-                                            method='2point')
-                                        for m in range(rwsInCfg)
-                                    ]
+                            daughterson = [
+                                intertwining(mother[1][1][wset][m],
+                                             father[1][1][wset][m],
+                                             mutation_rate=muta_initial,
+                                             wMin=0.00001,
+                                             wMax=100.,
+                                             dbg=False,
+                                             def1=rv.rvs(),
+                                             def2=rv.rvs(),
+                                             method='2point')
+                                for m in range(rwsInCfg)
+                            ]
 
-                                    rw1 = np.array(daughterson)[:, 0]  #.sort()
-                                    rw1.sort()
-                                    rw2 = np.array(daughterson)[:, 1]  #.sort()
-                                    rw2.sort()
-                                    rws1.append(list(rw1[::-1]))
-                                    rws2.append(list(rw2[::-1]))
+                            rw1 = np.array(daughterson)[:, 0]  #.sort()
+                            rw1.sort()
+                            rw2 = np.array(daughterson)[:, 1]  #.sort()
+                            rw2.sort()
 
-                                daughter[1][1][wset] = rws1
-                                son[1][1][wset] = rws2
+                            for n in range(len(daughter[1][1])):
+                                daughter[1][1][n] = list(rw1)
+                                son[1][1][n] = list(rw2)
 
                             twins.append(daughter)
                             twins.append(son)
@@ -469,9 +445,9 @@ for basisType in basisTypes:
                                 sbas += [[
                                     bv,
                                     [
-                                        x for x in range(
-                                            1 + off, 1 +
-                                            len(twins[0][1][1][n]), 1)
+                                        x
+                                        for x in range(1 + off, 1 +
+                                                       len(twins[0][1][1]), 1)
                                     ]
                                 ]]
                                 bv += 1
@@ -602,26 +578,29 @@ for basisType in basisTypes:
                optCond, groundstateEnergy, optLove))
 
         # Output on tape; further processing via A3...py
-        suf = 'ref' if basisType == set.boundstateChannel else 'fin-%d' % ScatteringBasis[
+        suf = 'ref' if basisType == set.initialChannel else 'fin-%d' % ScatteringBasis[
             basisNo]
 
         lfrags = np.array(civs[0][0])[:, 1].tolist()
         sfrags = np.array(civs[0][0])[:, 0].tolist()
-        n3_inlu(8,
-                fn=set.resultsDirectory + 'INLU_%s' % suf,
-                fr=lfrags,
-                indep=-1)
-        n3_inlu(8,
-                fn=set.resultsDirectory + 'INLUCN_%s' % suf,
-                fr=lfrags,
-                indep=-1)
-        n3_inob(sfrags, 8, fn=set.resultsDirectory + 'INOB_%s' % suf, indep=-1)
-        n3_inob(sfrags,
-                15,
-                fn=set.resultsDirectory + 'DRINOB_%s' % suf,
-                indep=-1)
+        generate_INLU(8,
+                      fn=set.resultsDirectory + 'INLU_%s' % suf,
+                      fr=lfrags,
+                      indep=-1)
+        generate_INLU(8,
+                      fn=set.resultsDirectory + 'INLUCN_%s' % suf,
+                      fr=lfrags,
+                      indep=-1)
+        generate_INOB_file(sfrags,
+                           8,
+                           fn=set.resultsDirectory + 'INOB_%s' % suf,
+                           indep=-1)
+        generate_INOB_file(sfrags,
+                           15,
+                           fn=set.resultsDirectory + 'DRINOB_%s' % suf,
+                           indep=-1)
 
-        shutil.copy('INQUA_M', set.resultsDirectory + 'INQUA_V18_%s' % suf)
+        shutil.copy('INQUA_N', set.resultsDirectory + 'INQUA_V18_%s' % suf)
         shutil.copy('INEN', set.resultsDirectory + 'INEN_%s' % suf)
         shutil.copy('INSAM', set.resultsDirectory)
 
@@ -641,7 +620,7 @@ for basisType in basisTypes:
         fullBasfile, actBasfile, actFragfile, intwFile, relwFile = write_basis_on_tape(
             civs[0], jValue, basisType, baspath=basisPath)
 
-        if basisType != set.boundstateChannel:
+        if basisType != set.initialChannel:
             AbasOutStr = set.resultsDirectory + 'Ssigbasv3heLIT_%s_BasNR-%d.dat' % (
                 basisType, ScatteringBasis[basisNo])
             FbasOutStr = set.resultsDirectory + 'SLITbas_full_%s_BasNR-%d.dat' % (
@@ -676,7 +655,7 @@ for basisType in basisTypes:
         matoutstr = '%smat_%s' % (
             set.resultsDirectory,
             basisType + '_BasNR-%d' % ScatteringBasis[basisNo]
-        ) if basisType != set.boundstateChannel else '%smat_%s' % (
+        ) if basisType != set.initialChannel else '%smat_%s' % (
             set.resultsDirectory, basisType)
 
         shutil.copy('MATOUTB', matoutstr)
@@ -689,6 +668,6 @@ for basisType in basisTypes:
                   set.backupDirectory)
 
         # for the bound-state/initial-state channel, consider only one basis set
-        if basisType == set.boundstateChannel:
+        if basisType == set.initialChannel:
             break
 print('>>>>> end of NextToNewestGeneration.py')

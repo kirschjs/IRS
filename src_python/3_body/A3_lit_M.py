@@ -11,7 +11,7 @@ import datetime
 import numpy as np
 from scipy.io import FortranFile
 #from bridgeA3 import *
-from bridgeA3 import A3settings
+from CalcSpecification import calcSettings
 # CG(j1, m1, j2, m2, j3, m3)
 from clg import CG
 from rrgm_functions import allowedMs
@@ -23,28 +23,27 @@ print('>>>>>>>>> start of A3_lit_M.py')
 uniqueDirectory = sys.argv[1]  # before bridgeA3 settings is used (which takes this as an input)
 MPIProcesses = sys.argv[2]
 
-set = A3settings(uniqueDirectory=uniqueDirectory,
+set = calcSettings(uniqueDirectory=uniqueDirectory,
                  shouldExist=False,
-                 mpiProcesses=MPIProcesses)
+                 mpiProcesses=MPIProcesses,
+                 nucleus="3He")
 
 set.resultsDirectory = set.backupDirectory
 
-RHSofBV = {}
-RHSofmJ = {}
+#RHSofBV = {}
+#RHSofmJ = {}
 arglist = sys.argv
 try:
     # with arguments: calculate overlap for bases arg1 - arg2
     ScatteringBases = np.arange(int(arglist[3]), int(arglist[4]) + 1)
-    numScatteringBases = len(ScatteringBases)
+    numberOfScatteringBases = len(ScatteringBases)
 except IndexError:
     # w/o  arguments: calc. overlap for the range of bases found canonically in /home/kirscher/compton_tmp/mul_helion/results
-    numScatteringBases = len([
-        f for f in glob.glob(set.resultsDirectory +
-                             'mat_%s_BasNR-*' % set.ScatteringChannels[0])
-    ])
-    ScatteringBases = np.arange(1, numScatteringBases + 1)
+    numberOfScatteringBases = len(
+        [f for f in glob.glob(set.resultsDirectory + 'mat_%s_BasNR-*' % set.ScatteringChannels[0])]
+    )
+    ScatteringBases = np.arange(1, numberOfScatteringBases + 1)
 if os.path.isfile(set.resultsDirectory + 'kRange.dat'):
-    #os.system('rm ' + set.respath + 'kRange.dat')
     os.remove(set.resultsDirectory + 'kRange.dat')
 
 with open(set.resultsDirectory + 'kRange.dat', 'wb') as f:
@@ -55,11 +54,11 @@ with open(set.resultsDirectory + 'kRange.dat', 'wb') as f:
     f.truncate()
 f.close()
 suffix = '_ref'
-intWidthsInitial, relativeWidthsInitial, fragmentInfoInitial = retrieve_basis_data(set.resultsDirectory + 'INQUA_V18' +
-                                       suffix)
+intWidthsInitial, relativeWidthsInitial, fragmentInfoInitial = retrieve_basis_data(
+    set.resultsDirectory + 'INQUA_V18' + suffix)
 initialBasisDimensionsRef = len(sum(sum(relativeWidthsInitial, []), []))
 
-for basisNumber in range(numScatteringBases):
+for basisNumber in range(numberOfScatteringBases):
     suffix = '_fin-%d' % int(basisNumber + 1)
     intWidthsFinal, relativeWidthsFInal, fragmentInfoFinal = retrieve_basis_data(set.resultsDirectory +
                                                     'INQUA_V18' + suffix)

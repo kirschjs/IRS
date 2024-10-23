@@ -54,12 +54,12 @@ except IndexError:
     basisTypes = [set.initialChannel] + set.ScatteringChannels  #
 
 if set.initialChannel in basisTypes:
-    if os.path.isdir(set.helionDirectory) != False:
-        print('<ECCE> removing the existing helion folder: %s.' %
-              set.helionDirectory)
+    if os.path.isdir(set.nucleusDirectory) != False:
+        print('<NOTE> removing the existing nucleus folder: %s.' %
+              set.nucleusDirectory)
         #os.system('rm -rf ' + set.helionPath)
-        shutil.rmtree(set.helionDirectory)
-    os.makedirs(set.helionDirectory + 'basis_struct/', exist_ok=True)
+        shutil.rmtree(set.nucleusDirectory)
+    os.makedirs(set.nucleusDirectory + 'basis_struct/', exist_ok=True)
 
 for scatteringChannel in set.ScatteringChannels:
     if scatteringChannel in basisTypes:
@@ -68,7 +68,7 @@ for scatteringChannel in set.ScatteringChannels:
         ]
         for finalStatePath in finalStatePaths:
             if os.path.isdir(finalStatePath):
-                print('<ECCE> removing the existing final-state folder: %s' %
+                print('<NOTE> removing the existing final-state folder: %s' %
                       finalStatePath)
                 #os.system('rm -rf ' + finalStatePath)
                 shutil.rmtree(finalStatePath)
@@ -150,9 +150,7 @@ for basisType in basisTypes:
     #plt.hist(r, density=True, bins=310)
     #plt.show()
 
-    deuteronBindingEnergy = 2.224
-    tritonBindingEnergy = 8.482
-    he3BindingEnergy = 7.72
+
     # get the initial, random basis seed to yield thresholds close to the results in a complete basis
     channelThreshold = -1.0 if basisType == set.initialChannel else -1.00
     CgfCycles = 1
@@ -162,7 +160,7 @@ for basisType in basisTypes:
 
     # > nState > produce/optimize/grow multiple bases with pseudo-random initial seeds
     for basisNo in range(NumberOfScatteringBasisFunctions):
-        workDir = set.helionDirectory if basisType == set.initialChannel else finalStatePaths[
+        workDir = set.nucleusDirectory if basisType == set.initialChannel else finalStatePaths[
             basisNo]
         basisPath = workDir + 'basis_struct/'
         os.chdir(workDir)
@@ -210,9 +208,9 @@ for basisType in basisTypes:
                    groundstateEnergy, basCond))
 
             if ((groundstateEnergy >= channelThreshold) |
-                (groundstateEnergy < -1.2 * tritonBindingEnergy)):
+                (groundstateEnergy < -1.2 * set.tritonBindingEnergy)):
                 print(
-                    'ECCE! seed does not expand states with E<%f => new sowing attempt.'
+                    'NOTE! seed does not expand states with E<%f => new sowing attempt.'
                     % channelThreshold)
 
                 continue
