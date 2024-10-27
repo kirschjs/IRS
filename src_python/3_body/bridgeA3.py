@@ -14,6 +14,7 @@ from settings import *
 
 
 class A3settings:
+
     def __init__(self, uniqueDirectory, shouldExist, mpiProcesses):
         """
             uniqueDirectory:    a unique directory for this run
@@ -23,7 +24,7 @@ class A3settings:
 
         self.backupDirectory = os.getenv(
             'HOME'
-        ) + '/local/scratch/compton_IRS/' + uniqueDirectory + '/'  # where results are stored at the end
+        ) + '/scratch/compton_IRS/' + uniqueDirectory + '/'  # where results are stored at the end
         if os.path.exists(self.backupDirectory + '/results'):
             print(
                 "Use existing results folder/Create backup and write in empty folder: (press Enter)/(type B)?"
@@ -86,7 +87,7 @@ class A3settings:
         'rhs-end',
         'rhs',
         'rhs-couple',
-#        'allM',
+        #        'allM',
     ]
 
     jobDirectory = os.getcwd()
@@ -118,22 +119,22 @@ class A3settings:
         # helion
         'pnn0.5^+': [
             ['000', ['t_no1', 't_no6']],  # 1,2
-            ['022', ['t_no2']],  # 3
-            ['202', ['t_no2']],  # 4
-            ['111', ['t_no3', 't_no5']],  # 5,6
-            ['112', ['t_no5']],  # 7
-            ['220', ['t_no1', 't_no6']],  # 8,9
-            ['221', ['t_no1', 't_no2', 't_no6']],  # 10,11,12
-            ['222', ['t_no2']],  # 13
+            #['022', ['t_no2']],  # 3
+            #['202', ['t_no2']],  # 4
+            #['111', ['t_no3', 't_no5']],  # 5,6
+            #['112', ['t_no5']],  # 7
+            #['220', ['t_no1', 't_no6']],  # 8,9
+            #['221', ['t_no1', 't_no2', 't_no6']],  # 10,11,12
+            #['222', ['t_no2']],  # 13
         ],
         #          [l1l2L,[compatible (iso)spiqn configurations]]
         '0.5^-': [
             ['011', ['t_no1', 't_no2']],
-            ['101', ['t_no3']],
-            ['211', ['t_no1', 't_no2']],
-            ['212', ['t_no2']],
-            ['121', ['t_no3', 't_no5']],
-            ['122', ['t_no5']],
+            #['101', ['t_no3']],
+            #['211', ['t_no1', 't_no2']],
+            #['212', ['t_no2']],
+            #['121', ['t_no3', 't_no5']],
+            #['122', ['t_no5']],
         ],
         '1.5^-': [
             ['011', ['t_no1', 't_no2', 't_no6']],

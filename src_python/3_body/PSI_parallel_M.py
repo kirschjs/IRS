@@ -13,6 +13,7 @@ from three_particle_functions import *
 import multiprocessing
 from multiprocessing.pool import ThreadPool
 
+
 def span_initial_basis(
         set,
         basisType,
@@ -249,22 +250,22 @@ def span_initial_basis(
     run_external(set.bindingBinDir + 'DROBER.exe')
     generate_INQUAN_file(intwi=widi, relwi=widr, potf=set.nnPotFile)
     parallel_INQUA(lfrags2,
-                           sfrags2,
-                           infile='INQUA_N',
-                           outFileNm='INQUA_N',
-                           single_path=workingDirectory + '/')
+                   sfrags2,
+                   infile='INQUA_N',
+                   outFileNm='INQUA_N',
+                   single_path=workingDirectory + '/')
     insam(len(lfrags2))
     numberProcesses = max(2, min(len(lfrags2), set.maxProcesses))
     print('Number of Processes + 1: ', set.maxProcesses)
     #print('Anzahl der Sklaven + 1: %d' % anzproc)
     # exit()
     generate_INEN_bdg(sbas,
-                Jscattering,
-                coefstr,
-                fileName='INEN',
-                pari=0,
-                nzop=numberOfOperators,
-                tni=set.tnni)
+                      Jscattering,
+                      coefstr,
+                      fileName='INEN',
+                      pari=0,
+                      nzop=numberOfOperators,
+                      tni=set.tnni)
     if set.parallel == -1:
         testDiskUsage(workingDirectory, set.temporaryFree)
         #t0 = time.perf_counter()
@@ -293,11 +294,11 @@ def span_initial_basis(
     if set.useV3B:
         generate_INQUAN_file(intwi=widi, relwi=widr, potf=set.nnnPotFile)
         parallel_INQUA(lfrags2,
-                               sfrags2,
-                               infile='INQUA_N',
-                               outFileNm='INQUA_N',
-                               tni=1,
-                               single_path=workingDirectory + '/')
+                       sfrags2,
+                       infile='INQUA_N',
+                       outFileNm='INQUA_N',
+                       tni=1,
+                       single_path=workingDirectory + '/')
         if set.parallel == -1:
             testDiskUsage(workingDirectory, set.temporaryFree)
             #t0 = time.perf_counter()
@@ -330,6 +331,7 @@ def span_initial_basis(
     #subprocess.call('cp INEN inen_seed', shell=True)
     shutil.copy('INEN', 'inen_seed')
     return np.core.records.fromfile('MATOUTB', formats='f8', offset=4)
+
 
 def span_population(
         set,
@@ -541,7 +543,7 @@ def span_population(
 
     for cand in samp_ladder:
         # admit candidate basis as soon as the smallest EV is <0
-        if ((cand[2][0] < 0.1) &
+        if ((cand[2][0] < 10.1) &
                 # admit the basis only if the smallest N EVs (as def. by optRange) are <0
                 #if ((np.all(np.less(cand[2], np.zeros(len(cand[2]))))) &
             (cand[3] > minC)):
@@ -556,6 +558,7 @@ def span_population(
     #    print(cc)
 
     return cand_list, sbas
+
 
 def end3(para, send_end):
     #   0     1     2    3            4    5        6     7      8                  9        10       11       12      13
@@ -574,10 +577,10 @@ def end3(para, send_end):
 
     generate_INQUAN_file(intwi=para[0], relwi=para[1], potf=para[3].nnPotFile)
     parallel_INQUA(para[11],
-                           para[12],
-                           infile='INQUA_N',
-                           outFileNm='INQUA_N',
-                           single_path=para[13] + '/')
+                   para[12],
+                   infile='INQUA_N',
+                   outFileNm='INQUA_N',
+                   single_path=para[13] + '/')
 
     insam(len(para[11]))
     numberProcesses = max(2, min(len(para[11]), para[3].maxProcesses))
@@ -585,12 +588,12 @@ def end3(para, send_end):
     #print('Anzahl der Sklaven + 1: %d' % anzproc)
     # exit()
     generate_INEN_bdg(bas=para[2],
-                jValue=para[4],
-                co=para[6],
-                fileName='INEN',
-                pari=0,
-                nzop=para[9],
-                tni=para[3].tnni)
+                      jValue=para[4],
+                      co=para[6],
+                      fileName='INEN',
+                      pari=0,
+                      nzop=para[9],
+                      tni=para[3].tnni)
 
     testDiskUsage(workingDirectory, para[3].temporaryFree)
     #t0 = time.perf_counter()
@@ -615,13 +618,15 @@ def end3(para, send_end):
         os.remove(filename)
 
     if para[3].useV3B:
-        generate_INQUAN_file(intwi=para[0], relwi=para[1], potf=para[3].nnnPotFile)
+        generate_INQUAN_file(intwi=para[0],
+                             relwi=para[1],
+                             potf=para[3].nnnPotFile)
         parallel_INQUA(para[11],
-                               para[12],
-                               infile='INQUA_N',
-                               outFileNm='INQUA_N',
-                               tni=1,
-                               single_path=para[13] + '/')
+                       para[12],
+                       infile='INQUA_N',
+                       outFileNm='INQUA_N',
+                       tni=1,
+                       single_path=para[13] + '/')
 
         testDiskUsage(workingDirectory, para[3].temporaryFree)
         #t0 = time.perf_counter()

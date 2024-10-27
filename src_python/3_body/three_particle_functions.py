@@ -52,15 +52,15 @@ elem_spin_prods = {
 
 
 def reduce_basis(typ='',
-              max_coeff=11000,
-              min_coeff=150,
-              target_size=80,
-              nbr_cycles=20,
-              max_diff=0.01,
-              ord=0,
-              tniii=10,
-              delpred=1,
-              dr2executable=''):
+                 max_coeff=11000,
+                 min_coeff=150,
+                 target_size=80,
+                 nbr_cycles=20,
+                 max_diff=0.01,
+                 ord=0,
+                 tniii=10,
+                 delpred=1,
+                 dr2executable=''):
     basis_size = 400000
     bdg_end = 400000
     diff = 0.0
@@ -216,28 +216,28 @@ def reduce_basis(typ='',
 
 
 def shrink_widths(ch='612-05m',
-              size3=90,
-              ncycl=350,
-              maxd=0.005,
-              minc3=200,
-              maxc3=6000,
-              ord=0,
-              tnii=10,
-              delpredd=3,
-              exe=''):
+                  size3=90,
+                  ncycl=350,
+                  maxd=0.005,
+                  minc3=200,
+                  maxc3=6000,
+                  ord=0,
+                  tnii=10,
+                  delpredd=3,
+                  exe=''):
     print('reducing widths in %s channel...' % ch)
     cons_red = 1
     while cons_red:
         tmp = reduce_basis(typ=ch,
-                        max_coeff=maxc3,
-                        min_coeff=minc3,
-                        target_size=size3,
-                        nbr_cycles=ncycl,
-                        max_diff=maxd,
-                        ord=0,
-                        tniii=tnii,
-                        delpred=delpredd,
-                        dr2executable=exe)
+                           max_coeff=maxc3,
+                           min_coeff=minc3,
+                           target_size=size3,
+                           nbr_cycles=ncycl,
+                           max_diff=maxd,
+                           ord=0,
+                           tniii=tnii,
+                           delpred=delpredd,
+                           dr2executable=exe)
         cons_red = (size3 <= tmp[1])
         #minc3 += 2
         maxc3 -= 100
@@ -404,6 +404,8 @@ def generate_INLU(anzO, fn='INLU', fr=[], indep=0):
             out += '%s_%s\n' % (fr[n], fr[m])
     with open(fn, 'w') as outfile:
         outfile.write(out)
+
+
 def generate_INLU_parallel(mul=0, anzo=7, indep=1, frag=[]):
     s = ''
     #   NBAND1,NBAND2,LAUS,KAUS,MKAUS,LALL,INDEP
@@ -423,6 +425,8 @@ def generate_INLU_parallel(mul=0, anzo=7, indep=1, frag=[]):
     with open('INLU', 'w') as outfile:
         outfile.write(s)
     return
+
+
 def generate_INLU_nofn(mul=0, anzo=7, frag=[], fn='INLU'):
     out = ''
     #   NBAND1,NBAND2,LAUS,KAUS,MKAUS,LALL
@@ -439,15 +443,16 @@ def generate_INLU_nofn(mul=0, anzo=7, frag=[], fn='INLU'):
         outfile.write(out)
     return
 
+
 def generate_INEN_rhs(bas,
-                jay,
-                co,
-                rw,
-                fileName='INEN',
-                pari=0,
-                nzop=31,
-                tni=11,
-                anzb=0):
+                      jay,
+                      co,
+                      rw,
+                      fileName='INEN',
+                      pari=0,
+                      nzop=31,
+                      tni=11,
+                      anzb=0):
     head = '%3d  2 12%3d  1  1 +2  0  0 -1  0  1\n' % (tni, nzop)
     head += '  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1\n'
     head += co + '\n'
@@ -468,14 +473,16 @@ def generate_INEN_rhs(bas,
         out += tmp
     with open(fileName, 'w') as outfile:
         outfile.write(head + out)
+
+
 def generate_INEN_bdg(bas,
-                jValue,
-                co,
-                fileName='INEN',
-                pari=0,
-                nzop=31,
-                tni=11,
-                idum=2):
+                      jValue,
+                      co,
+                      fileName='INEN',
+                      pari=0,
+                      nzop=31,
+                      tni=11,
+                      idum=2):
     # idum=2 -> I4 for all other idum's -> I3
     head = '%3d%3d 12%3d  1  0 +0  0  0 -1  0  1\n' % (tni, idum, nzop)
     head += '  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1\n'
@@ -517,6 +524,8 @@ def generate_INOB_file_indep(fr, anzO, fn='INOB', indep=0):
             out += '%s_%s\n' % (fr[n], fr[m])
     with open(fn, 'w') as outfile:
         outfile.write(out)
+
+
 def generate_INOB_parallel(anzo=13, indep=1, fr=[]):
     global elem_spin_prods
     out = ''
@@ -533,9 +542,11 @@ def generate_INOB_parallel(anzo=13, indep=1, fr=[]):
     with open('INOB', 'w') as outfile:
         outfile.write(out)
     return
-def generate_INOB_file(anzo=13, fr=[], fn='INOB'):
+
+
+def generate_INOB_file(anzo=13, fr=[], fn='INOB', indep=-1):
     out = ''
-    out += '  8  3  3  3\n'
+    out += '  8  3  3  3%3d\n' % indep
     for n in range(anzo):
         out += '  1'
     out += '\n  4\n'
@@ -545,12 +556,13 @@ def generate_INOB_file(anzo=13, fr=[], fn='INOB'):
     with open(fn, 'w') as outfile:
         outfile.write(out)
 
+
 def parallel_INQUA(frlu=[],
-                           frob=[],
-                           infile='INQUA',
-                           outFileNm='INQUA_PAR',
-                           tni=0,
-                           single_path=''):
+                   frob=[],
+                   infile='INQUA',
+                   outFileNm='INQUA_PAR',
+                   tni=0,
+                   single_path=''):
     pref = '-tni' if tni else ''
     out = ''
     #   NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,naufset,NAUS,MOBAUS,LUPAUS,NBAUS,NLES
@@ -570,13 +582,16 @@ def parallel_INQUA(frlu=[],
     #  1   :   0  0  1S0         0
     #  2   :   1  0  3S1         2
 
+
 def generate_INQUA_file(intwi=[],
-               relwi=[],
-               LREG='',
-               anzo=13,
-               withhead=True,
-               bnd='',
-               outFileNm='INQUA'):
+                        relwi=[],
+                        LREG='',
+                        anzo=13,
+                        withhead=True,
+                        bnd='',
+                        outFileNm='INQUA'):
+
+    print(intwi, relwi)
     out = ''
     if (withhead):
         # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
@@ -587,10 +602,10 @@ def generate_INQUA_file(intwi=[],
         else:
             out += LREG
         out += '\n'
-        bdginq = [line for line in open(bnd)][2:]
-        for line in bdginq:
-            out += line
-    else:
+        #bdginq = [line for line in open(bnd)][2:]
+        #for line in bdginq:
+        #    out += line
+        #else:
         pieces_counter = 0
         bv_counter = 1
         for n in range(len(relwi)):
@@ -620,6 +635,7 @@ def generate_INQUA_file(intwi=[],
                         out += '\n'
                         out += '1.'.rjust(12 * (bb % 6 + 1))
                         out += '\n'
+
     with open(outFileNm, 'w') as outfile:
         outfile.write(out)
     return
@@ -627,13 +643,14 @@ def generate_INQUA_file(intwi=[],
     #  1   :   0  0  1S0         0
     #  2   :   1  0  3S1         2
 
+
 def generate_INEN_bare(JWSL,
-                   JWSLM,
-                   MULM2,
-                   JWSR,
-                   MREG='',
-                   noOper=11,
-                   fileName='INEN'):
+                       JWSLM,
+                       MULM2,
+                       JWSR,
+                       MREG='',
+                       noOper=11,
+                       fileName='INEN'):
     out = ''
     # NBAND1,IGAK,KAUSD,KEIND ,IDUM
     out += ' 10  0  0  0\n'
@@ -655,25 +672,26 @@ def generate_INEN_bare(JWSL,
     outfile.close()
     return
 
+
 def generate_INEN_file(BUECO,
-              KSTREU,
-              JWSL,
-              JWSLM,
-              MULM2,
-              JWSR,
-              MREG='',
-              NPARL=2,
-              NPARR=2,
-              anzo=11,
-              ANORML=1.0,
-              ANORMR=1.0,
-              EB=-2.2134173,
-              NZE=100,
-              EK0=1e3,
-              EKDIFF=20.0,
-              withhead=True,
-              bnd='',
-              outFileNm='INEN'):
+                       KSTREU,
+                       JWSL,
+                       JWSLM,
+                       MULM2,
+                       JWSR,
+                       MREG='',
+                       NPARL=2,
+                       NPARR=2,
+                       anzo=11,
+                       ANORML=1.0,
+                       ANORMR=1.0,
+                       EB=-2.2134173,
+                       NZE=100,
+                       EK0=1e3,
+                       EKDIFF=20.0,
+                       withhead=True,
+                       bnd='',
+                       outFileNm='INEN'):
     s = ''
     # NBAND1,IGAK,KEIND,IQUAK
     s += ' 10  0  0  0\n'
@@ -724,6 +742,7 @@ def generate_INEN_file(BUECO,
     outfile.close()
     return
 
+
 def generate_INQUAN_file(intwi=[], relwi=[], potf='', inquaout='INQUA_N'):
     s = ''
     # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
@@ -756,6 +775,7 @@ def generate_INQUAN_file(intwi=[], relwi=[], potf='', inquaout='INQUA_N'):
         outfile.write(s)
     return
 
+
 def generate_INQUA_file_BS(intwi=[], relwi=[], potf='', inquaout='INQUA_M'):
     s = ''
     # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
@@ -786,46 +806,56 @@ def generate_INQUA_file_BS(intwi=[], relwi=[], potf='', inquaout='INQUA_M'):
         outfile.write(s)
     return
 
-def generate_INQUA_file(intwi=[], relwi=[], LREG='', anzo=13, outFileNm='INQUA'):
-    s = ''
-    # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
-    s += ' 10  8  9  3 00  0  0  0  0\n'
-    if (LREG == ''):
-        for n in range(anzo):
-            s += '  1'
-    else:
-        s += LREG
-    s += '\n'
-    pieces_counter = 0
-    bv_counter = 1
-    for n in range(len(intwi)):
-        pieces_counter += 1
-        nrel = min([len(re) for re in relwi[n]])
-        s += '%3d%60s%s\n%3d%3d\n' % (len(intwi[n]), '', 'Z%d  BVs %d - %d' %
-                                      (pieces_counter, bv_counter, bv_counter -
-                                       1 + len(intwi[n])), len(intwi[n]), nrel)
-        bv_counter += len(intwi[n])
-        for bv in range(len(intwi[n])):
-            s += '%36s%-12.6f\n' % ('', float(intwi[n][bv]))
-            for rw in range(0, len(relwi[n][bv])):
-                s += '%12.8f' % float(relwi[n][bv][rw])
-            s += '\n'
-        tmpln = np.ceil(len(intwi[n]) / 6.)
-        for bb in range(0, len(intwi[n])):
-            s += '  1  1\n'
-            for i in range(int(bb / 6)):
-                s += '\n'
-            s += '1.'.rjust(12 * (bb % 6 + 1))
-            for ii in range(int(tmpln - int(bb / 6))):
-                s += '\n'
-    with open(outFileNm, 'w') as outfile:
-        outfile.write(s)
-    return
-    # r7 c2:   S  L           S_c
-    #  1   :   0  0  1S0         0
-    #  2   :   1  0  3S1         2
 
-def generate_INQUA_file_seq(intwi=[], relwi=[], LREG='', anzo=13, outFileNm='INQUA'):
+#def generate_INQUA_file(intwi=[],
+#                        relwi=[],
+#                        LREG='',
+#                        anzo=13,
+#                        outFileNm='INQUA'):
+#    s = ''
+#    # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
+#    s += ' 10  8  9  3 00  0  0  0  0\n'
+#    if (LREG == ''):
+#        for n in range(anzo):
+#            s += '  1'
+#    else:
+#        s += LREG
+#    s += '\n'
+#    pieces_counter = 0
+#    bv_counter = 1
+#    for n in range(len(intwi)):
+#        pieces_counter += 1
+#        nrel = min([len(re) for re in relwi[n]])
+#        s += '%3d%60s%s\n%3d%3d\n' % (len(intwi[n]), '', 'Z%d  BVs %d - %d' %
+#                                      (pieces_counter, bv_counter, bv_counter -
+#                                       1 + len(intwi[n])), len(intwi[n]), nrel)
+#        bv_counter += len(intwi[n])
+#        for bv in range(len(intwi[n])):
+#            s += '%36s%-12.6f\n' % ('', float(intwi[n][bv]))
+#            for rw in range(0, len(relwi[n][bv])):
+#                s += '%12.8f' % float(relwi[n][bv][rw])
+#            s += '\n'
+#        tmpln = np.ceil(len(intwi[n]) / 6.)
+#        for bb in range(0, len(intwi[n])):
+#            s += '  1  1\n'
+#            for i in range(int(bb / 6)):
+#                s += '\n'
+#            s += '1.'.rjust(12 * (bb % 6 + 1))
+#            for ii in range(int(tmpln - int(bb / 6))):
+#                s += '\n'
+#    with open(outFileNm, 'w') as outfile:
+#        outfile.write(s)
+#    return
+#    # r7 c2:   S  L           S_c
+#    #  1   :   0  0  1S0         0
+#    #  2   :   1  0  3S1         2
+
+
+def generate_INQUA_file_seq(intwi=[],
+                            relwi=[],
+                            LREG='',
+                            anzo=13,
+                            outFileNm='INQUA'):
     s = ''
     # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
     s += ' 10  8  9  3 00  0  0  0  0\n'
@@ -871,6 +901,7 @@ def generate_INQUA_file_seq(intwi=[], relwi=[], LREG='', anzo=13, outFileNm='INQ
     #  1   :   0  0  1S0         0
     #  2   :   1  0  3S1         2
 
+
 def read_inob(infile='INOB'):
     fi = [line for line in open(infile)]
     ob_stru = []
@@ -878,6 +909,7 @@ def read_inob(infile='INOB'):
         if 'he' in ll.split()[-1]:
             ob_stru.append(ll.split()[-1].strip())
     return ob_stru
+
 
 def read_inlu(infile='INLU'):
     fi = [line for line in open(infile)][2:]
@@ -887,7 +919,8 @@ def read_inlu(infile='INLU'):
                        fi[n + 1].split()[0].strip())
     return lu_stru
 
-def retrieve_basis_data(inqua):
+
+def retrieve_basis_data_M(inqua):
     relativeWidths = []
     intWidths = []
     decompsitionInfo = []
@@ -918,6 +951,7 @@ def retrieve_basis_data(inqua):
         intWidths += [intWidthsTemp]
         relativeWidths += [relativeWidthsTemp]
         lineNR += 2 * numberOfiw + numberOfbvLN + 2
+
     with open('intw3he.dat', 'w') as f:
         for ws in intWidths:
             np.savetxt(f, [ws], fmt='%12.4f', delimiter=' ; ')
@@ -928,3 +962,60 @@ def retrieve_basis_data(inqua):
                 np.savetxt(f, [ws], fmt='%12.4f', delimiter=' ; ')
     f.close()
     return intWidths, relativeWidths, decompsitionInfo
+
+
+def retrieve_basis_data_N(inqua):
+
+    relw = []
+    intw = []
+    frgm = []
+    inq = [line for line in open(inqua)]
+
+    lineNR = 0
+    while lineNR < len(inq):
+        if ((re.search('Z', inq[lineNR]) != None) |
+            (re.search('z', inq[lineNR]) != None)):
+            break
+        lineNR += 1
+    if lineNR == len(inq):
+        print('no <Z> qualifier found in <INQUA>!')
+        exit()
+
+    while lineNR < len(inq):
+
+        try:
+            anziw = int(inq[lineNR].split()[0])
+        except:
+            break
+
+        anzbvLN = 2 * anziw if anziw <= 6 else 3 * anziw
+        anzrw = int(inq[lineNR + 1].split()[1])
+        anzrwLN = int(np.ceil(float(anzrw) / 6))
+
+        frgm.append([anziw, anzrw])
+        intwtmp = []
+        relwtmp = []
+        for iws in range(anziw):
+            intwtmp += [float(inq[lineNR + 2 + iws].strip())]
+        for rws in range(anzrwLN):
+            for rw in inq[lineNR + 2 + int(inq[lineNR].split()[0]) +
+                          rws].split():
+                relwtmp += [float(rw)]
+        intw += [intwtmp]
+        relw += [relwtmp]
+
+        lineNR += anziw + anzrwLN + anzbvLN + 2
+
+    iw = intw
+    rw = relw
+
+    with open('intw3he.dat', 'wb') as f:
+        for ws in iw:
+            np.savetxt(f, [ws], fmt='%12.4f', delimiter=' ; ')
+    f.close()
+    with open('relw3he.dat', 'wb') as f:
+        for ws in rw:
+            np.savetxt(f, [ws], fmt='%12.4f', delimiter=' ; ')
+    f.close()
+
+    return iw, rw, frgm

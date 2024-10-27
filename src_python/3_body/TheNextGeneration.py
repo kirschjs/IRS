@@ -83,7 +83,7 @@ for basisType in basisTypes:
     #  "realistic/test" setting  [8, 20, 8, 24]/[5, 4, 7, 4]
     # if you dare to exceed the 'realistic' dimensions, check and increase slightly NDIM in par.h
     # in src_fortran/UIX and src_fortran/V18 and possibly also in src_fortran/par/(DR)QUAF
-    initialDimensions = [5, 4, 6, 6]
+    initialDimensions = [3, 4, 3, 4]
 
     # lower and upper bounds for the grids from which the initial seed state is taken
     # 1-4: initial state, 1-2(jacobi1), 3-4(jacobi2)
@@ -130,7 +130,7 @@ for basisType in basisTypes:
     minimalConditionNumber = 1e-10
     # energy ranges in which a larger number of Hamiltonian eigenvalues
     # correspond to a "stronger" basis individuum
-    targetEVinterval = [-9., -0.5
+    targetEVinterval = [-9., +10.5
                         ] if basisType == set.initialChannel else [-3., 80.0]
     muta_initial = 0.1
     randomAdmissionThreshold = 0.85
@@ -154,10 +154,10 @@ for basisType in basisTypes:
     tritonBindingEnergy = 8.482
     he3BindingEnergy = 7.72
     # get the initial, random basis seed to yield thresholds close to the results in a complete basis
-    channelThreshold = -1.0 if basisType == set.initialChannel else -1.00
+    channelThreshold = +1.0 if basisType == set.initialChannel else +1.00
     CgfCycles = 1
     # nRaces := |i|
-    nRaces = 1 if basisType == set.initialChannel else 4
+    nRaces = 1 if basisType == set.initialChannel else 1
     maximumOffspring = 6
 
     # > nState > produce/optimize/grow multiple bases with pseudo-random initial seeds
@@ -587,20 +587,20 @@ for basisType in basisTypes:
 
         lfrags = np.array(civs[0][0])[:, 1].tolist()
         sfrags = np.array(civs[0][0])[:, 0].tolist()
-        generate_INLU(8,
+        generate_INLU(anzO=8,
                       fn=set.resultsDirectory + 'INLU_%s' % suf,
                       fr=lfrags,
                       indep=-1)
-        generate_INLU(8,
+        generate_INLU(anzO=8,
                       fn=set.resultsDirectory + 'INLUCN_%s' % suf,
                       fr=lfrags,
                       indep=-1)
-        generate_INOB_file(sfrags,
-                           8,
+        generate_INOB_file(fr=sfrags,
+                           anzo=8,
                            fn=set.resultsDirectory + 'INOB_%s' % suf,
                            indep=-1)
-        generate_INOB_file(sfrags,
-                           15,
+        generate_INOB_file(fr=sfrags,
+                           anzo=15,
                            fn=set.resultsDirectory + 'DRINOB_%s' % suf,
                            indep=-1)
 
