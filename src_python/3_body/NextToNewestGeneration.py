@@ -53,7 +53,7 @@ except IndexError:
 
 if set.initialChannel in basisTypes:
     if os.path.isdir(set.helionDirectory) != False:
-        print('<Note> removing the existing helion folder: %s.' %
+        print('<ECCE> removing the existing helion folder: %s.' %
               set.helionDirectory)
         #os.system('rm -rf ' + set.helionPath)
         shutil.rmtree(set.helionDirectory)
@@ -66,7 +66,7 @@ for scatteringChannel in set.ScatteringChannels:
         ]
         for finalStatePath in finalStatePaths:
             if os.path.isdir(finalStatePath):
-                print('<Note> removing the existing final-state folder: %s' %
+                print('<ECCE> removing the existing final-state folder: %s' %
                       finalStatePath)
                 #os.system('rm -rf ' + finalStatePath)
                 shutil.rmtree(finalStatePath)
@@ -213,7 +213,7 @@ for basisType in basisTypes:
             if ((groundstateEnergy >= channelThreshold) |
                 (groundstateEnergy < -1.2 * tritonBindingEnergy)):
                 print(
-                    'Note! seed does not expand states with E<%f => new sowing attempt.'
+                    'ECCE! seed does not expand states with E<%f => new sowing attempt.'
                     % channelThreshold)
 
                 continue
@@ -241,7 +241,7 @@ for basisType in basisTypes:
                 rw0 += len(intwLIT[cfg])
             initialCiv = [cfgs, intwLIT, rws, []]
             # set of unique angular, spin, and isospin configurations
-            # Note: each of these cfg's might appear multiple times if the
+            # ecce: each of these cfg's might appear multiple times if the
             # number of radial widths associated with it exceeds <bvma>
             unisA = []
             for ncfg in range(len(initialCiv[0])):
@@ -864,7 +864,7 @@ for basisType in basisTypes:
                optCond, groundstateEnergy, optLove))
 
         # Output on tape; further processing via A3...py
-        suf = 'ref' if basisType == set.initialChannel else 'fin-%d' % ScatteringBasis[
+        suf = 'ref' if basisType == set.boundstateChannel else 'fin-%d' % ScatteringBasis[
             basisNo]
 
         lfrags = np.array(initialCiv[0])[:, 1].tolist()
@@ -914,7 +914,7 @@ for basisType in basisTypes:
         fullBasfile, actBasfile, actFragfile, intwFile, relwFile = write_basis_on_tape(
             initialCiv, jValue, basisType, baspath=basisPath)
 
-        if basisType != set.initialChannel:
+        if basisType != set.boundstateChannel:
             AbasOutStr = set.resultsDirectory + 'Ssigbasv3heLIT_%s_BasNR-%d.dat' % (
                 basisType, ScatteringBasis[basisNo])
             FbasOutStr = set.resultsDirectory + 'SLITbas_full_%s_BasNR-%d.dat' % (
@@ -949,7 +949,7 @@ for basisType in basisTypes:
         matoutstr = '%smat_%s' % (
             set.resultsDirectory,
             basisType + '_BasNR-%d' % ScatteringBasis[basisNo]
-        ) if basisType != set.initialChannel else '%smat_%s' % (
+        ) if basisType != set.boundstateChannel else '%smat_%s' % (
             set.resultsDirectory, basisType)
 
         shutil.copy('MATOUTB', matoutstr)
@@ -962,6 +962,6 @@ for basisType in basisTypes:
                   set.backupDirectory)
 
         # for the bound-state/initial-state channel, consider only one basis set
-        if basisType == set.initialChannel:
+        if basisType == set.boundstateChannel:
             break
 print('>>>>> end of NextToNewestGeneration.py')

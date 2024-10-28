@@ -5,9 +5,9 @@ import multiprocessing
 import shutil
 import sys
 import time
-#from itertools import product
+from itertools import product
 from multiprocessing.pool import ThreadPool
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 from bridgeA3 import *
 from rrgm_functions import sortprint, polynomial_sum_weight

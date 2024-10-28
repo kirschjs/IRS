@@ -8,6 +8,7 @@ from genetic_width_growth import *
 from settings import *
 from three_particle_functions import *
 
+
 def blunt_ev(set,
              cfgs,
              intws,
@@ -39,7 +40,7 @@ def blunt_ev(set,
     generate_INLU(8, fn='INLUCN', fr=lfrag, indep=set.parallel)
     #os.system(bin_path + 'LUDW_CN.exe')
     run_external(binaryPath + 'LUDW_CN.exe')
-    generate_INOB_file_indep(sfrag, 8, fn='INOB', indep=set.parallel)
+    generate_INOB_file(sfrag, 8, fn='INOB', indep=set.parallel)
     #os.system(bin_path + 'KOBER.exe')
     run_external(binaryPath + 'KOBER.exe')
     generate_INQUAN_file(intwi=intws, relwi=relws, potf=NNpotName, inquaout='INQUA_N_0')
@@ -75,7 +76,7 @@ def blunt_ev(set,
         generate_INLU(8, fn='INLU', fr=lfrag, indep=set.parallel)
         #os.system(bin_path + 'DRLUD.exe')
         run_external(binaryPath + 'DRLUD.exe')
-        generate_INOB_file_indep(sfrag, 15, fn='INOB', indep=set.parallel)
+        generate_INOB_file(sfrag, 15, fn='INOB', indep=set.parallel)
         #os.system(bin_path + 'DROBER.exe')
         run_external(binaryPath + 'DROBER.exe')
         generate_INQUAN_file(intwi=intws,
@@ -153,7 +154,8 @@ def smart_ev_niels(matout, threshold=1e-7):
     #return the ordered eigenvalues
     return ewGood, normCond
 
-def smart_ev(matout, threshold=1e-7):
+
+def smart_ev(matout, threshold=10**-7):
 
     dim = int(np.sqrt(len(matout) * 0.5))
 
@@ -220,6 +222,7 @@ def smart_ev(matout, threshold=1e-7):
     #return the ordered eigenvalues
     return ewGood, normCond, gsCoeffRatio
 
+
 def NormHamDiag(matout, threshold=1e-7):
     dim = int(np.sqrt(len(matout) * 0.5))
     # read Norm and Hamilton matrices
@@ -255,6 +258,7 @@ def NormHamDiag(matout, threshold=1e-7):
         ewH = []
     #print('E_min/E_max = %12.4e   B(0) = %12.4e' % (condition, ewGood[-1]))
     return ewN, ewH
+
 
 def endmat(para, send_end):
     [
