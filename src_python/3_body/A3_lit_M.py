@@ -53,201 +53,191 @@ with open(set.resultsDirectory + 'kRange.dat', 'wb') as f:
     f.truncate()
 f.close()
 suffix = '_ref'
-intWidthsInitial, relativeWidthsInitial, fragmentInfoInitial = retrieve_basis_data_N(
-    set.resultsDirectory + 'INQUA_V18' + suffix)
+he_iw, he_rw, he_frgs = retrieve_he3_M(set.resultsDirectory + 'INQUA_V18' +
+                                       suffix)
+HelBasDimRef = len(sum(sum(he_rw, []), []))
 
-initialBasisDimensionsRef = sum(
-    [np.prod(pair) for pair in fragmentInfoInitial])
+for nB in range(numScatteringBases):
 
-for basisNumber in range(numScatteringBases):
-    suffix = '_fin-%d' % int(basisNumber + 1)
-    intWidthsFinal, relativeWidthsFInal, fragmentInfoFinal = retrieve_basis_data_N(
-        set.resultsDirectory + 'INQUA_V18' + suffix)
-
-    finalBasisDimensionsRef = sum(
-        [np.prod(pair) for pair in fragmentInfoFinal])
-
+    suffix = '_fin-%d' % int(nB + 1)
+    final_iw, final_rw, final_frgs = retrieve_he3_M(set.resultsDirectory +
+                                                    'INQUA_V18%s' % suffix)
+    FinBasDimRef = len(sum(sum(final_rw, []), []))
     with open(
-            set.resultsDirectory +
-            'BareBasDims_%d.dat' % ScatteringBases[basisNumber], 'wb') as f:
-        np.savetxt(f, [initialBasisDimensionsRef, finalBasisDimensionsRef],
-                   fmt='%d')
+            set.resultsDirectory + 'BareBasDims_%d.dat' % ScatteringBases[nB],
+            'wb') as f:
+        np.savetxt(f, [HelBasDimRef, FinBasDimRef], fmt='%d')
         f.seek(NEWLINE_SIZE_IN_BYTES, 2)
         f.truncate()
     f.close()
-
-    if 'rhs' in set.calculations:
-        initialBasisDimension = sum([
-            len(ln.split()[1:])
-            for ln in open(set.resultsDirectory +
-                           'SLITbas_full_%s.dat' % set.initialChannel)
-        ])
-        lDecompositionInitial = []
-        sDecompositionsInitial = []
-        decompositionFiles = [
-            ln for ln in open(set.resultsDirectory +
-                              'Sfrags_LIT_%s.dat' % set.initialChannel)
-        ]
-        lDecompositionInitial = [
-            fr.split(' ')[1].strip() for fr in decompositionFiles
-        ]
-        sDecompositionsInitial = [
-            fr.split(' ')[0] for fr in decompositionFiles
-        ]
+    if 'rhs' in set.cal:
         for scatteringChannel in set.ScatteringChannels:
             Jscattering = float(scatteringChannel.split('^')[0])
             JscatteringString = '%s' % str(Jscattering)[:3]
-            mLmJfValues, mLrange, mJFinalrange = allowedMs(
-                set.operatorL, set.J0, Jscattering)
-            decompositionFiles = [
+            mLmJl, mLrange, mJlrange = non_zero_couplings(
+                set.multipolarity, set.J0, Jscattering)
+            HelBasDim = sum([
+                len(ln.split()[1:])
+                for ln in open(set.resultsDirectory +
+                               'SLITbas_full_%s.dat' % set.boundstateChannel)
+            ])
+            lfrags = []
+            sfrags = []
+            #for lcfg in range(len(channels[boundstatekanal])):
+            #    sfrags = sfrags + channels[boundstatekanal][lcfg][1]
+            #    for scfg in channels[boundstatekanal][lcfg][1]:
+            #        lfrags = lfrags + [channels[boundstatekanal][lcfg][0]]
+            fragfile = [
+                ln for ln in open(set.resultsDirectory +
+                                  'Sfrags_LIT_%s.dat' % set.boundstateChannel)
+            ]
+            lfrags = [fr.split(' ')[1].strip() for fr in fragfile]
+            sfrags = [fr.split(' ')[0] for fr in fragfile]
+            # read widths and frags of the LIT basis as determined via
+            # v18uix_LITbasis.py
+            fragfile = [
                 ln for ln in open(set.resultsDirectory +
                                   'Sfrags_LIT_%s_BasNR-%d.dat' %
-                                  (scatteringChannel, int(basisNumber + 1)))
+                                  (scatteringChannel, int(nB + 1)))
             ]
-            lfragsFinal = [
-                fr.split(' ')[1].strip() for fr in decompositionFiles
-            ]
-            sfragsFinal = [fr.split(' ')[0] for fr in decompositionFiles]
+            lfrags2 = [fr.split(' ')[1].strip() for fr in fragfile]
+            sfrags2 = [fr.split(' ')[0] for fr in fragfile]
             intwLIT = [
                 np.array(ln.split()).astype(float).tolist()
                 for ln in open(set.resultsDirectory +
                                'Sintw3heLIT_%s_BasNR-%d.dat' %
-                               (scatteringChannel, int(basisNumber + 1)))
+                               (scatteringChannel, int(nB + 1)))
             ]
             relwLIT = [
                 np.array(ln.split()).astype(float).tolist()
                 for ln in open(set.resultsDirectory +
                                'Srelw3heLIT_%s_BasNR-%d.dat' %
-                               (scatteringChannel, int(basisNumber + 1)))
+                               (scatteringChannel, int(nB + 1)))
             ]
-            if 'dbg' in set.calculations:
+            if 'dbg' in set.cal:
                 print(
                     '\n3He components (full) + LIT-basis components (bare):\n',
-                    len(lDecompositionInitial))
-                print(sDecompositionsInitial)
-                print('\nLIT-basis components (full):\n', len(lfragsFinal))
-                print(sfragsFinal)
-            if 'rhs_lu-ob-qua' in set.calculations:
-                intWidthsFinal2 = [
+                    len(lfrags))
+                print(sfrags)
+                print('\nLIT-basis components (full):\n', len(lfrags2))
+                print(sfrags2)
+            if 'rhs_lu-ob-qua' in set.cal:
+                he_iw_2 = [
                     np.array(ln.split()).astype(float).tolist()
                     for ln in open(set.resultsDirectory +
-                                   'Sintw3heLIT_%s.dat' % set.initialChannel)
+                                   'Sintw3heLIT_%s.dat' %
+                                   set.boundstateChannel)
                 ]
-                realtiveWidthsFinal2 = [
+                he_rw_2 = [
                     np.array(ln.split()).astype(float).tolist()
                     for ln in open(set.resultsDirectory +
-                                   'Srelw3heLIT_%s.dat' % set.initialChannel)
+                                   'Srelw3heLIT_%s.dat' %
+                                   set.boundstateChannel)
                 ]
-                for calculationRepeat in range(len(lfragsFinal)):
+                for lit_zerl in range(len(lfrags2)):
 
                     if os.path.isdir(set.resultsDirectory +
-                                     'tmp_%d' % calculationRepeat) == False:
+                                     'tmp_%d' % lit_zerl) == False:
                         subprocess.check_call([
                             'mkdir', '-p',
-                            set.resultsDirectory + 'tmp_%d' % calculationRepeat
+                            set.resultsDirectory + 'tmp_%d' % lit_zerl
                         ])
-                    os.chdir(set.resultsDirectory +
-                             'tmp_%d' % calculationRepeat)
+                    os.chdir(set.resultsDirectory + 'tmp_%d' % lit_zerl)
                     for file in os.listdir(os.getcwd()):
                         if fnmatch.fnmatch(file, '*J%s*.log' % Jscattering):
-                            if 'dbg' in set.calculations:
+                            if 'dbg' in set.cal:
                                 print('removing old <*.log> files.')
                             #os.system('rm *.log')
-                            for resultsFilePath in glob.glob('*.log'):
-                                os.remove(resultsFilePath)
+                            for name in glob.glob('*.log'):
+                                os.remove(name)
                             break
-
-                    rwtttmp = relativeWidthsInitial + [
-                        relwLIT[calculationRepeat]
+                    rwtttmp = he_rw + [
+                        relwLIT[sum([len(fgg) for fgg in intwLIT[:lit_zerl]]):
+                                sum([len(fgg) for fgg in intwLIT[:lit_zerl]]) +
+                                len(intwLIT[lit_zerl])]
                     ]
-
-                    generate_INQUA_file(
-                        intwi=intWidthsInitial + [intwLIT[calculationRepeat]],
-                        relwi=rwtttmp,
-                        anzo=11,
-                        LREG='  1  0  0  0  0  0  0  0  0  1  1',
-                        outFileNm=set.resultsDirectory + 'tmp_%d/INQUA' %
-                        (calculationRepeat))
-
-                    generate_INLU_nofn(mul=set.operatorL,
-                                       frag=lDecompositionInitial +
-                                       [lfragsFinal[calculationRepeat]],
-                                       fn=set.resultsDirectory +
-                                       'tmp_%d/INLU' % (calculationRepeat))
-
-                    generate_INOB_file(fr=sDecompositionsInitial +
-                                       [sfragsFinal[calculationRepeat]],
-                                       fn=set.resultsDirectory +
-                                       'tmp_%d/INOB' % (calculationRepeat))
+                    lit_3inqua_M(intwi=he_iw + [intwLIT[lit_zerl]],
+                                 relwi=rwtttmp,
+                                 anzo=11,
+                                 LREG='  1  0  0  0  0  0  0  0  0  1  1',
+                                 outFileNm=set.resultsDirectory +
+                                 'tmp_%d/INQUA' % (lit_zerl))
+                    lit_3inlu(mul=set.multipolarity,
+                              frag=lfrags + [lfrags2[lit_zerl]],
+                              fn=set.resultsDirectory + 'tmp_%d/INLU' %
+                              (lit_zerl))
+                    lit_3inob(fr=sfrags + [sfrags2[lit_zerl]],
+                              fn=set.resultsDirectory + 'tmp_%d/INOB' %
+                              (lit_zerl))
             leftpar = int(1 + 0.5 *
                           (1 + (-1)**
                            (int(set.channels[scatteringChannel][0][0][0]) +
                             int(set.channels[scatteringChannel][0][0][1]))))
 
             def cal_rhs_lu_ob_qua(para, procnbr):
-                workerDirectory = set.resultsDirectory + 'tmp_%d' % para
+                slave_pit = set.resultsDirectory + 'tmp_%d' % para
                 cmdlu = set.litBinDir + 'juelmanoo.exe'
                 cmdob = set.litBinDir + 'jobelmanoo.exe'
                 cmdqu = set.litBinDir + 'jquelmanoo.exe'
-                print('%s in %s' % (cmdlu, workerDirectory))
+                print('%s in %s' % (cmdlu, slave_pit))
                 plu = subprocess.Popen(shlex.split(cmdlu),
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE,
-                                       cwd=workerDirectory)
+                                       cwd=slave_pit)
                 out, err = plu.communicate()
                 print('process = %d-1 : luise exits.' % para)
-                print('%s in %s' % (cmdob, workerDirectory))
+                print('%s in %s' % (cmdob, slave_pit))
                 pob = subprocess.Popen(shlex.split(cmdob),
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE,
-                                       cwd=workerDirectory)
+                                       cwd=slave_pit)
                 out, err = pob.communicate()
                 print('process = %d-1 : ober exits.' % para)
-                print('%s in %s' % (cmdqu, workerDirectory))
+                print('%s in %s' % (cmdqu, slave_pit))
                 pqu = subprocess.Popen(shlex.split(cmdqu),
                                        stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE,
-                                       cwd=workerDirectory)
+                                       cwd=slave_pit)
                 out, err = pqu.communicate()
                 print('process = %d-1 : qual exits.' % para)
 
-            def cal_rhs_end(parameters, procnbr):
-                #parameters[0]: mL mJfinal combinations
-                #parameters[1]: 1
-                #parameters[2]: 1
-                #parameters[3]: calculationRepeat
-                workerDirectory = set.resultsDirectory + 'tmp_%d/' % parameters[
-                    3]
+            def cal_rhs_end(para, procnbr):
+                slave_pit = set.resultsDirectory + 'tmp_%d/' % para[3]
                 inenf = 'inenlit%d-%d_J%3.1f_mJ%3.1f-mL%d.log' % (
-                    parameters[1], parameters[2], Jscattering,
-                    parameters[0][1], parameters[0][0])
+                    para[1], para[2], Jscattering, para[0][1], para[0][0])
                 outfseli = 'endlit%d-%d_J%3.1f_mJ%3.1f-mL%d.log' % (
-                    parameters[1], parameters[2], Jscattering,
-                    parameters[0][1], parameters[0][0])
-                # rhs matrix (LMJ0m-M|Jm)*<J_lit m|LM|J0 m-M>
-                #  <component>_S_<J>_<mJ>_<ML>
-                outfsbare = '%s_S_%s_%s_%s.lit' % (
-                    str(parameters[3]).replace('.', ''),
-                    str(Jscattering).replace('.', ''),
-                    str(parameters[0][1]).replace('.', ''),
-                    str(parameters[0][0]).replace('.', ''),
+                    para[1],
+                    para[2],
+                    Jscattering,
+                    para[0][1],
+                    para[0][0],
                 )
-                generate_INEN_bare(MREG='  1  0  0  0  0  0  0  0  0  1  1',
-                                   JWSL=Jscattering,
-                                   JWSLM=parameters[0][1],
-                                   MULM2=parameters[0][0],
-                                   JWSR=set.J0,
-                                   fileName=workerDirectory + inenf)
+                # rhs matrix (LMJ0m-M|Jm)*<J_lit m|LM|J0 m-M>
+                #  <component>_S_<J>_<mJ>_<M>
+                outfsbare = '%s_S_%s_%s_%s.lit' % (
+                    str(para[3]).replace('.', ''),
+                    #para[1],
+                    #para[2],
+                    str(Jscattering).replace('.', ''),
+                    str(para[0][1]).replace('.', ''),
+                    str(para[0][0]).replace('.', ''),
+                )
+                lit_3inen_bare(MREG='  1  0  0  0  0  0  0  0  0  1  1',
+                               JWSL=Jscattering,
+                               JWSLM=para[0][1],
+                               MULM2=para[0][0],
+                               JWSR=set.J0,
+                               outFileNm=slave_pit + inenf)
                 cmdend = set.litBinDir + 'jenelmasnoo.exe %s %s %s' % (
                     inenf, outfseli, outfsbare)
                 pend = subprocess.Popen(shlex.split(cmdend),
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.PIPE,
-                                        cwd=workerDirectory)
+                                        cwd=slave_pit)
                 out, err = pend.communicate()
                 return (out, err)
 
-            parameter_set_lu_ob_qua = range(len(lfragsFinal))
+            parameter_set_lu_ob_qua = range(len(lfrags2))
             parameter_set_end = []
             #        wfn = wrkDir + 'basis_struct/LITbas_full_J%s_%s.dat' % (
             #            Jstreustring, streukanal)
@@ -255,13 +245,13 @@ for basisNumber in range(numScatteringBases):
             #        print('[...] reading BV-rw tupel from %s' % wfn)
             #        litbas = [np.loadtxt(wfn).astype(int)[0]]
             #        print(litbas)
-            for calculationRepeat in range(len(lfragsFinal)):
-                bsbv = sum([len(b) for b in intWidthsInitial])
+            for lit_zerl in range(len(lfrags2)):
+                bsbv = sum([len(b) for b in he_iw])
                 parameter_set = []
                 bvrange = range(
-                    sum([len(z) for z in intwLIT[:calculationRepeat]]) + 1,
-                    sum([len(z) for z in intwLIT[:calculationRepeat]]) + 1 +
-                    len(intwLIT[calculationRepeat]))
+                    sum([len(z) for z in intwLIT[:lit_zerl]]) + 1,
+                    sum([len(z) for z in intwLIT[:lit_zerl]]) + 1 +
+                    len(intwLIT[lit_zerl]))
                 #            litbas3 = []
                 #            for bv in filter(lambda x: (x[0] in bvrange), litbas):
                 #                litbas3.append([int(bv[0] - (bvrange[0] - 1) + bsbv), bv[1]])
@@ -273,16 +263,16 @@ for basisNumber in range(numScatteringBases):
                 #                #f.seek(NEWLINE_SIZE_IN_BYTES, 2)
                 #                #f.truncate()
                 #            f.close()
-                if 'allM' in set.calculations:
-                    for mLmJf in mLmJfValues:
-                        parameter_set.append([mLmJf, 1, 1, calculationRepeat])
-                else:
-                    #only stretched ms: MJ=Jfinal, MJ0=J0 and thus ML=Jfinal -J0
-                    parameter_set.append([[Jscattering - set.J0, Jscattering],
-                                          1, 1, calculationRepeat])
+                for mM in mLmJl:
+                    parameter_set.append([mM, 1, 1, lit_zerl])
+                    #for bv in filter(lambda x: (x[0] in bvrange), litbas):
+                    #    parameter_set.append([
+                    #        mM,
+                    #        int(bv[0] - (bvrange[0] - 1) + bsbv), bv[1], lit_zerl
+                    #    ])
                 parameter_set_end.append(parameter_set)
 
-            if 'rhs-qual' in set.calculations:
+            if 'rhs-qual' in set.cal:
                 parameter_set = parameter_set_lu_ob_qua
                 results = []
                 pool = ThreadPool(min(set.maxProcesses, len(parameter_set)))
@@ -295,38 +285,34 @@ for basisNumber in range(numScatteringBases):
                         )))
                 pool.close()
                 pool.join()
-
-                for calculationRepeat in range(len(lfragsFinal)):
+                for lit_zerl in range(len(lfrags2)):
                     shutil.copyfile(
-                        set.resultsDirectory +
-                        'tmp_%d/QUAOUT' % calculationRepeat,
+                        set.resultsDirectory + 'tmp_%d/QUAOUT' % lit_zerl,
                         set.resultsDirectory + 'tmp_%d/QUAOUT_J%3.1f' %
-                        (calculationRepeat, Jscattering))
-                #os.system('cp ' + wrkDir + 'tmp_%d/QUAOUT ' % lit_zerl +
-                #          wrkDir + 'tmp_%d/QUAOUT_J%3.1f' %
-                #          (lit_zerl, Jscattering))
+                        (lit_zerl, Jscattering))
+                    #os.system('cp ' + wrkDir + 'tmp_%d/QUAOUT ' % lit_zerl +
+                    #          wrkDir + 'tmp_%d/QUAOUT_J%3.1f' %
+                    #          (lit_zerl, Jscattering))
 
-            if 'rhs-end' in set.calculations:
-                for calculationRepeat in range(len(lfragsFinal)):
-                    print('working for J_{final}=%s and repeat %d' %
-                          (Jscattering, calculationRepeat))
+            if 'rhs-end' in set.cal:
+                for lit_zerl in range(len(lfrags2)):
+                    print('(J=%s)  werkle in %d' % (Jscattering, lit_zerl))
                     try:
                         shutil.copyfile(
                             set.resultsDirectory + 'tmp_%d/QUAOUT_J%3.1f' %
-                            (calculationRepeat, Jscattering),
-                            set.resultsDirectory + 'tmp_%d/QUAOUT' %
-                            (calculationRepeat))
+                            (lit_zerl, Jscattering), set.resultsDirectory +
+                            'tmp_%d/QUAOUT' % (lit_zerl))
                         #os.system('cp ' + wrkDir + 'tmp_%d/QUAOUT_J%3.1f ' %
                         #          (lit_zerl, Jscattering) + wrkDir +
                         #          'tmp_%d/QUAOUT' % (lit_zerl))
                     except:
-                        print('no file <QUAOUT> for this channel.')
+                        print('<QUAOUT> na for this channel.')
                         exit(-1)
                     results = []
 
                     pool = ThreadPool(min(set.maxProcesses,
                                           len(parameter_set)))
-                    parameter_set = parameter_set_end[calculationRepeat]
+                    parameter_set = parameter_set_end[lit_zerl]
 
                     for procnbr in range(len(parameter_set)):
                         pars = parameter_set[procnbr]
@@ -343,146 +329,91 @@ for basisNumber in range(numScatteringBases):
                     #os.chdir(wrkDir)
                     #subprocess.call('rm  -rf %s' % tmps, shell=True)
                 #os.system('mv ' + wrkDir + 'tmp_*/*_S_* ' + set.respath)
-                for resultsFilePath in glob.glob(set.resultsDirectory +
-                                                 'tmp_*/*_S_*'):
-                    fileName = set.resultsDirectory + resultsFilePath.split(
-                        '/')[-1]
-                    if os.path.exists(fileName):
-                        os.remove(fileName)
-                    shutil.move(resultsFilePath, set.resultsDirectory)
+                for name in glob.glob(set.resultsDirectory + 'tmp_*/*_S_*'):
+                    tmpf = set.resultsDirectory + name.split('/')[-1]
+                    if os.path.exists(tmpf):
+                        os.remove(tmpf)
+                    shutil.move(name, set.resultsDirectory)
 
-        if 'rhs-couple' in set.calculations:
+        if 'rhs-couple' in set.cal:
             os.chdir(set.resultsDirectory)
             rhs = []
             #print('commencing coupling...',HelBasDim)
             for nch in range(len(set.ScatteringChannels)):
                 scatteringChannel = set.ScatteringChannels[nch]
-                JFinal = float(scatteringChannel.split('^')[0])
-                JscatteringString = '%s' % str(JFinal)[:3]
+                In = float(scatteringChannel.split('^')[0])
+                JscatteringString = '%s' % str(In)[:3]
                 # as all bases must have the same (iso)spin structure,
                 # we retrieve this from BasNR-1
-                decompositionFiles = [
-                    ln
-                    for ln in open(set.resultsDirectory +
-                                   'Sfrags_LIT_%s_BasNR-%d.dat' %
-                                   (scatteringChannel, int(basisNumber + 1)))
+                fragfile = [
+                    ln for ln in open(set.resultsDirectory +
+                                      'Sfrags_LIT_%s_BasNR-%d.dat' %
+                                      (scatteringChannel, int(nB + 1)))
                 ]
-                lfragsFinal = [
-                    fr.split(' ')[1].strip() for fr in decompositionFiles
-                ]
-                mLmJfValues, mLrange, mJFinalrange = allowedMs(
-                    set.operatorL, set.J0, JFinal)
-                print(set.operatorL, set.J0, JFinal, ':', mJFinalrange)
-                if 'allM' in set.calculations:
-                    for mJ in mJFinalrange:
-                        firstmJ = True
-                        for mL in mLrange:
-                            JFinals = str(JFinal).replace('.',
-                                                          '').ljust(2, '0')
-                            mLs = str(mL).replace('.', '').ljust(
-                                3, '0') if mL < 0 else str(mL).replace(
-                                    '.', '').ljust(2, '0')
-                            mJs = str(mJ).replace('.', '').ljust(
-                                3, '0') if mJ < 0 else str(mJ).replace(
-                                    '.', '').ljust(2, '0')
-                            clebsch = float(
-                                CG(set.operatorL, set.J0, JFinal, mL, mJ - mL,
-                                   mJ))
+                lfrags2 = [fr.split(' ')[1].strip() for fr in fragfile]
+                mLmJl, mLrange, mJlrange = non_zero_couplings(
+                    set.multipolarity, set.J0, In)
+                print(set.multipolarity, set.J0, In, ':', mJlrange)
+                for mJ in mJlrange:
+                    firstmJ = True
+                    for mL in mLrange:
+                        Ins = str(In).replace('.', '').ljust(2, '0')
+                        mLs = str(mL).replace('.', '').ljust(
+                            3, '0') if mL < 0 else str(mL).replace(
+                                '.', '').ljust(2, '0')
+                        mJs = str(mJ).replace('.', '').ljust(
+                            3, '0') if mJ < 0 else str(mJ).replace(
+                                '.', '').ljust(2, '0')
+                        clebsch = float(
+                            CG(set.multipolarity, set.J0, In, mL, mJ - mL, mJ))
 
-                            if np.abs(clebsch) != 0:
-                                print('(%d,%d;%s,%s|%s,%s) = %f' %
-                                      (set.operatorL, mL, str(
-                                          set.J0), str(mJ - mL), str(JFinal),
-                                       str(mJ), clebsch))
-                                rhstmp = []
-                                for calculationRepeat in range(
-                                        len(lfragsFinal)):
-                                    fna = "%d_S_%s_%s_%s.lit" % (
-                                        calculationRepeat, JFinals, mJs, mLs)
-                                    kompo_vects_bare = [
-                                        f for f in glob.glob(fna)
-                                    ]
-                                    if ((kompo_vects_bare == []) &
-                                        (np.abs(clebsch) > 0)):
-                                        print(
-                                            'RHS component missing: Z,In,MIn,ML:%d,%d,%d,%d'
-                                            % (calculationRepeat, JFinal, mJ,
-                                               mL))
-                                        print('Clebsch = ', clebsch)
-                                        print('file <%s> not found.' % fna)
-                                    fortranIn = FortranFile(
-                                        kompo_vects_bare[0], 'r'
-                                    ).read_reals(
-                                    )  #(float) # float is a real *8, so doesn't need specifying
-                                    #print(fortranIn[::100])
-                                    tDim = int(np.sqrt(np.shape(fortranIn)[0]))
-                                    OutBasDimFr = int(
-                                        tDim - initialBasisDimensionsRef)
-                                    #print(
-                                    #    'processing final fragment: %s\ndim(he_bare) = %d ; dim(fin) = %d ; dim(total) = %d'
-                                    #    % (fna, HelBasDimRef, OutBasDimFr, tDim))
-                                    subIndices = [
-                                        range(
-                                            (initialBasisDimensionsRef + ni) *
-                                            tDim,
-                                            (initialBasisDimensionsRef + ni) *
-                                            tDim + initialBasisDimensionsRef)
-                                        for ni in range(OutBasDimFr)
-                                    ]
-                                    test = np.take(fortranIn, subIndices)
-                                    test = np.reshape(test, (1, -1))
-                                    rhstmp = np.concatenate((rhstmp, test[0]))
-                                if firstmJ == True:
-                                    rhsInMIn = clebsch * rhstmp
-                                    firstmJ = False
-                                else:
-                                    temp = clebsch * rhstmp
-                                    rhsInMIn = rhsInMIn + temp
-                        print("%s -- %s" % (str(JFinal), str(mJ)))
-                        outstr = "InMIn_%s_%s_BasNR-%d.%s" % (
-                            str(JFinal), str(mJ), ScatteringBases[basisNumber],
-                            numeric_format)
-                        fortranOut = open(outstr, 'wb+')
-                        #print(rhsInMIn)
-                        #exit()
-                        rhsInMInF = np.asfortranarray(rhsInMIn, numeric_format)
-                        rhsInMInF.tofile(fortranOut)
-                        fortranOut.close()
-                else:
-                    #only stretched ms: MJ=Jfinal, MJ0=J0 and thus ML=Jfinal -J0
-                    mJ = JFinal
-                    mL = JFinal - set.J0
-                    JFinals = str(JFinal).replace('.', '').ljust(2, '0')
-                    mLs = str(mL).replace('.', '').ljust(
-                        3, '0') if mL < 0 else str(mL).replace('.', '').ljust(
-                            2, '0')
-                    mJs = str(mJ).replace('.', '').ljust(
-                        3, '0') if mJ < 0 else str(mJ).replace('.', '').ljust(
-                            2, '0')
-                    clebsch = float(
-                        CG(set.operatorL, set.J0, JFinal, mL, mJ - mL, mJ))
+                        if np.abs(clebsch) != 0:
+                            print('(%d,%d;%s,%s|%s,%s) = %f' %
+                                  (set.multipolarity, mL, str(set.J0),
+                                   str(mJ - mL), str(In), str(mJ), clebsch))
+                            rhstmp = []
+                            for lit_zerl in range(len(lfrags2)):
+                                fna = "%d_S_%s_%s_%s.lit" % (lit_zerl, Ins,
+                                                             mJs, mLs)
+                                kompo_vects_bare = [f for f in glob.glob(fna)]
+                                if ((kompo_vects_bare == []) &
+                                    (np.abs(clebsch) > 0)):
+                                    print(
+                                        'RHS component missing: Z,In,MIn,ML:%d,%d,%d,%d'
+                                        % (lit_zerl, In, mJ, mL))
+                                    print('Clebsch = ', clebsch)
+                                    print('file <%s> not found.' % fna)
+                                fortranIn = FortranFile(
+                                    kompo_vects_bare[0], 'r').read_reals(float)
+                                #print(fortranIn[::100])
+                                tDim = int(np.sqrt(np.shape(fortranIn)[0]))
+                                OutBasDimFr = int(tDim - HelBasDimRef)
+                                #print(
+                                #    'processing final fragment: %s\ndim(he_bare) = %d ; dim(fin) = %d ; dim(total) = %d'
+                                #    % (fna, HelBasDimRef, OutBasDimFr, tDim))
+                                subIndices = [
+                                    range((HelBasDimRef + ni) * tDim,
+                                          (HelBasDimRef + ni) * tDim +
+                                          HelBasDimRef)
+                                    for ni in range(OutBasDimFr)
+                                ]
+                                test = np.take(fortranIn, subIndices)
+                                test = np.reshape(test, (1, -1))
+                                rhstmp = np.concatenate((rhstmp, test[0]))
+                            if firstmJ == True:
+                                rhsInMIn = clebsch * rhstmp
+                                firstmJ = False
+                            else:
+                                temp = clebsch * rhstmp
+                                rhsInMIn = rhsInMIn + temp
+                    print("%s -- %s" % (str(In), str(mJ)))
+                    outstr = "InMIn_%s_%s_BasNR-%d.%s" % (
+                        str(In), str(mJ), ScatteringBases[nB], dt)
+                    fortranOut = open(outstr, 'wb+')
+                    #print(rhsInMIn)
+                    #exit()
+                    rhsInMInF = np.asfortranarray(rhsInMIn, dt)
+                    rhsInMInF.tofile(fortranOut)
+                    fortranOut.close()
 
-                    print('(%d,%d;%s,%s|%s,%s) = %f' %
-                          (set.operatorL, mL, str(set.J0), str(mJ - mL),
-                           str(JFinal), str(mJ), clebsch))
-                    for calculationRepeat in range(len(lfragsFinal)):
-                        fna = "%d_S_%s_%s_%s.lit" % (calculationRepeat,
-                                                     JFinals, mJs, mLs)
-                        kompo_vects_bare = [f for f in glob.glob(fna)]
-                        if (kompo_vects_bare == []):
-                            print(
-                                'RHS component missing: Z,In,MIn,ML:%d,%d,%d,%d'
-                                % (calculationRepeat, JFinal, mJ, mL))
-                            print('file <%s> not found.' % fna)
-                        os.rename(
-                            kompo_vects_bare[0], "./InMIn_%s_BasNR-%d.%s" %
-                            (str(JFinal), ScatteringBases[basisNumber],
-                             numeric_format))
-        else:
-            os.chdir(set.resultsDirectory)
-            #print('commencing coupling...',HelBasDim)
-            for nch in range(len(set.ScatteringChannels)):
-                scatteringChannel = set.ScatteringChannels[nch]
-                JFinal = float(scatteringChannel.split('^')[0])
-                JscatteringString = '%s' % str(JFinal)[:3]
 print('>>>>>>>>> end of A3_lit_M.py')
