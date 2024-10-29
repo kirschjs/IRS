@@ -99,6 +99,15 @@ class A3settings:
     useV3B = (tnni == 11)
     parallel = -1  # use -1 in some of the input files: horrible!
 
+    # the initial population is bred in chunks of length <civ_size> and *not* as
+    # one large set in order to limit the number of parallel threads to be manageable
+    civ_size = 15
+    # number of bases comprising a generation
+    civ_size_max = 25
+
+    # number of children to replace an equal number of old-generation members
+    anzNewBV = 6
+
     nnPotLabel = 'AV18'  #'nn_pot'  #pot_nn_06'  #'BONN'  #AV4.14'
     nnPotFile = jobDirectory + '/../../data/%s' % nnPotLabel
     nnnPotLabel = 'urbana9_AK_neu'  #'nnn_pot'  #'pot_nnn_06'  #
@@ -107,39 +116,39 @@ class A3settings:
     # convention: bound-state-expanding BVs: (1-8), i.e., 8 states per rw set => nzf0*8
     channels = {
         # helion
-        'npp0.5^+': [
-            ['000', ['he_no1', 'he_no6', 'he_no1', 'he_no6']],  # 1,2
-            ['022', ['he_no2', 'he_no2']],  # 3
-            ['202', ['he_no2', 'he_no2']],  # 4
-            ['111', ['he_no3', 'he_no5']],  # 5,6
-            ['112', ['he_no5']],  # 7
-            ['220', ['he_no1', 'he_no6']],  # 8,9
-            ['221', ['he_no1', 'he_no2', 'he_no6']],  # 10,11,12
-            ['222', ['he_no2']],  # 13
+        'pnn0.5^+': [
+            ['000', ['t_no1', 't_no6']],  # 1,2
+            ['022', ['t_no2']],  # 3
+            ['202', ['t_no2']],  # 4
+            ['111', ['t_no3', 't_no5']],  # 5,6
+            ['112', ['t_no5']],  # 7
+            ['220', ['t_no1', 't_no6']],  # 8,9
+            ['221', ['t_no1', 't_no2', 't_no6']],  # 10,11,12
+            ['222', ['t_no2']],  # 13
         ],
-        #          [l1l2L,[compatible (iso)spin configurations]]
+        #          [l1l2L,[compatible (iso)spiqn configurations]]
         '0.5^-': [
-            ['011', ['he_no1', 'he_no6', 'he_no1', 'he_no6']],
-            ['101', ['he_no3']],
-            ['211', ['he_no2', 'he_no1', 'he_no6']],
-            ['212', ['he_no2']],
-            ['121', ['he_no3', 'he_no5']],
-            ['122', ['he_no5']],
+            ['011', ['t_no1', 't_no2']],
+            ['101', ['t_no3']],
+            ['211', ['t_no1', 't_no2']],
+            ['212', ['t_no2']],
+            ['121', ['t_no3', 't_no5']],
+            ['122', ['t_no5']],
         ],
         '1.5^-': [
-            ['011', ['he_no1', 'he_no2', 'he_no6']],
-            ['101', ['he_no3']],
-            ['211', ['he_no1', 'he_no2', 'he_no6']],
-            ['212', ['he_no2']],
-            ['121', ['he_no3', 'he_no5']],
-            ['122', ['he_no3', 'he_no5']],
-            ['213', ['he_no2']],
+            ['011', ['t_no1', 't_no2', 't_no6']],
+            ['101', ['t_no3']],
+            ['211', ['t_no1', 't_no2', 't_no6']],
+            ['212', ['t_no2']],
+            ['121', ['t_no3', 't_no5']],
+            ['122', ['t_no3', 't_no5']],
+            ['213', ['t_no2']],
         ]
     }
 
-    ScatteringChannels = ['0.5^-', '1.5^-']
+    ScatteringChannels = ['0.5^-']  #, '1.5^-']
     #                  realistic    L>0 (only)         deuteron
-    boundstateChannel = 'npp0.5^+'
+    boundstateChannel = 'pnn0.5^+'
 
     J0 = float(boundstateChannel.split('^')[0][-3:])
 
@@ -160,16 +169,13 @@ class A3settings:
     maximalNoGaussWidths = 45
     #-------------------------- used in PSI_parallel_M.py  -------------------
     # minimal distance allowed for between width parameters
-    minDistanceWidth = 0.2
+    minDistanceWidth = 0.00002
     # lower bound for width parameters '=' IR cutoff (broadest state)
-    lowerboundWidth = 0.0001
+    lowerboundWidth = 0.000001
     # orbital-angular-momentum dependent upper bound '=' UV cutoff (narrowest state)
-    upperboundWidthiL = [22., 7., 6.]
-    upperboundWidthiR = [22., 7., 6.]
-    psiChannelLabels = [
-        'he_no1', 'he_no1y', 'he_no2', 'he_no2y', 'he_no3', 'he_no3y',
-        'he_no5', 'he_no5y', 'he_no6', 'he_no6y'
-    ]
+    upperboundWidthiL = [322., 117., 136.]
+    upperboundWidthiR = [322., 117., 136.]
+    psiChannelLabels = ['t_no1', 't_no2', 't_no3', 't_no5', 't_no6']
     psiChannels = [
         '000',
         '202',
