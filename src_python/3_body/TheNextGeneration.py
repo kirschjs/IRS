@@ -15,9 +15,9 @@ from genetic_width_growth import *
 from PSI_parallel_M import span_initial_basis, span_population, end3
 from settings import *
 from smart_diag import *
-from scipy.stats import truncnorm  #, norm
+from scipy.stats import truncnorm, norm
 
-print('>>>>>>>>> start of TheNextGeneration.py')
+print('>>>>>>>>> start of NextToNewestGeneration.py')
 
 uniqueDirectory = sys.argv[1]
 MPIProcesses = sys.argv[2]
@@ -28,7 +28,7 @@ set = A3settings(uniqueDirectory=uniqueDirectory,
 
 dbg = True
 with open(set.resultsDirectory + 'dtype.dat', 'w') as outputFile:
-    outputFile.write(numeric_format)
+    outputFile.write(dt)
 
 #os.chdir(set.litpath3He)
 
@@ -45,15 +45,15 @@ try:
     # for par_run.py operation
     ScatteringBasis = np.arange(int(argumentList[3]), int(argumentList[4]) + 1)
     NumberOfScatteringBasisFunctions = len(ScatteringBasis)
-    basisTypes = [set.initialChannel] if int(
+    basisTypes = [set.boundstateChannel] if int(
         argumentList[3]) < 0 else set.ScatteringChannels
 except IndexError:
     # for manual operation
     NumberOfScatteringBasisFunctions = 1
     ScatteringBasis = np.arange(1, NumberOfScatteringBasisFunctions + 1)
-    basisTypes = [set.initialChannel] + set.ScatteringChannels  #
+    basisTypes = [set.boundstateChannel] + set.ScatteringChannels  #
 
-if set.initialChannel in basisTypes:
+if set.boundstateChannel in basisTypes:
     if os.path.isdir(set.helionDirectory) != False:
         print('<ECCE> removing the existing helion folder: %s.' %
               set.helionDirectory)
@@ -83,7 +83,7 @@ for basisType in basisTypes:
     #  "realistic/test" setting  [8, 20, 8, 24]/[5, 4, 7, 4]
     # if you dare to exceed the 'realistic' dimensions, check and increase slightly NDIM in par.h
     # in src_fortran/UIX and src_fortran/V18 and possibly also in src_fortran/par/(DR)QUAF
-    initialDimensions = [3, 4, 3, 4]
+    initialDimensions = [5, 4, 6, 6]
 
     # lower and upper bounds for the grids from which the initial seed state is taken
     # 1-4: initial state, 1-2(jacobi1), 3-4(jacobi2)
@@ -130,8 +130,9 @@ for basisType in basisTypes:
     minimalConditionNumber = 1e-10
     # energy ranges in which a larger number of Hamiltonian eigenvalues
     # correspond to a "stronger" basis individuum
-    targetEVinterval = [-9., +10.5
-                        ] if basisType == set.initialChannel else [-3., 80.0]
+    targetEVinterval = [-9., -0.5] if basisType == set.boundstateChannel else [
+        -3., 80.0
+    ]
     muta_initial = 0.1
     randomAdmissionThreshold = 0.85
 
@@ -154,15 +155,15 @@ for basisType in basisTypes:
     tritonBindingEnergy = 8.482
     he3BindingEnergy = 7.72
     # get the initial, random basis seed to yield thresholds close to the results in a complete basis
-    channelThreshold = +1.0 if basisType == set.initialChannel else +1.00
+    channelThreshold = -1.0 if basisType == set.boundstateChannel else -1.00
     CgfCycles = 1
     # nRaces := |i|
-    nRaces = 1 if basisType == set.initialChannel else 1
+    nRaces = 1 if basisType == set.boundstateChannel else 4
     maximumOffspring = 6
 
     # > nState > produce/optimize/grow multiple bases with pseudo-random initial seeds
     for basisNo in range(NumberOfScatteringBasisFunctions):
-        workDir = set.helionDirectory if basisType == set.initialChannel else finalStatePaths[
+        workDir = set.helionDirectory if basisType == set.boundstateChannel else finalStatePaths[
             basisNo]
         basisPath = workDir + 'basis_struct/'
         os.chdir(workDir)
@@ -582,27 +583,24 @@ for basisType in basisTypes:
                optCond, groundstateEnergy, optLove))
 
         # Output on tape; further processing via A3...py
-        suf = 'ref' if basisType == set.initialChannel else 'fin-%d' % ScatteringBasis[
+        suf = 'ref' if basisType == set.boundstateChannel else 'fin-%d' % ScatteringBasis[
             basisNo]
 
         lfrags = np.array(civs[0][0])[:, 1].tolist()
         sfrags = np.array(civs[0][0])[:, 0].tolist()
-        generate_INLU(anzO=8,
-                      fn=set.resultsDirectory + 'INLU_%s' % suf,
-                      fr=lfrags,
-                      indep=-1)
-        generate_INLU(anzO=8,
-                      fn=set.resultsDirectory + 'INLUCN_%s' % suf,
-                      fr=lfrags,
-                      indep=-1)
-        generate_INOB_file(fr=sfrags,
-                           anzo=8,
-                           fn=set.resultsDirectory + 'INOB_%s' % suf,
-                           indep=-1)
-        generate_INOB_file(fr=sfrags,
-                           anzo=15,
-                           fn=set.resultsDirectory + 'DRINOB_%s' % suf,
-                           indep=-1)
+        n3_inlu(8,
+                fn=set.resultsDirectory + 'INLU_%s' % suf,
+                fr=lfrags,
+                indep=-1)
+        n3_inlu(8,
+                fn=set.resultsDirectory + 'INLUCN_%s' % suf,
+                fr=lfrags,
+                indep=-1)
+        n3_inob(sfrags, 8, fn=set.resultsDirectory + 'INOB_%s' % suf, indep=-1)
+        n3_inob(sfrags,
+                15,
+                fn=set.resultsDirectory + 'DRINOB_%s' % suf,
+                indep=-1)
 
         shutil.copy('INQUA_N', set.resultsDirectory + 'INQUA_V18_%s' % suf)
         shutil.copy('INEN', set.resultsDirectory + 'INEN_%s' % suf)
@@ -624,7 +622,7 @@ for basisType in basisTypes:
         fullBasfile, actBasfile, actFragfile, intwFile, relwFile = write_basis_on_tape(
             civs[0], jValue, basisType, baspath=basisPath)
 
-        if basisType != set.initialChannel:
+        if basisType != set.boundstateChannel:
             AbasOutStr = set.resultsDirectory + 'Ssigbasv3heLIT_%s_BasNR-%d.dat' % (
                 basisType, ScatteringBasis[basisNo])
             FbasOutStr = set.resultsDirectory + 'SLITbas_full_%s_BasNR-%d.dat' % (
@@ -659,7 +657,7 @@ for basisType in basisTypes:
         matoutstr = '%smat_%s' % (
             set.resultsDirectory,
             basisType + '_BasNR-%d' % ScatteringBasis[basisNo]
-        ) if basisType != set.initialChannel else '%smat_%s' % (
+        ) if basisType != set.boundstateChannel else '%smat_%s' % (
             set.resultsDirectory, basisType)
 
         shutil.copy('MATOUTB', matoutstr)
@@ -672,6 +670,6 @@ for basisType in basisTypes:
                   set.backupDirectory)
 
         # for the bound-state/initial-state channel, consider only one basis set
-        if basisType == set.initialChannel:
+        if basisType == set.boundstateChannel:
             break
 print('>>>>> end of NextToNewestGeneration.py')

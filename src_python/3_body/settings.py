@@ -15,7 +15,7 @@ print("csf (on CSF) is ", csf)
 print("########################")
 
 NEWLINE_SIZE_IN_BYTES = -1
-numeric_format = 'float64'
+dt = 'float64'
 
 MPIRUNcmd = shutil.which("mpirun")
 

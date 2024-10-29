@@ -212,13 +212,13 @@ def span_initial_basis(
     if os.path.isdir(workingDirectory + '/eob/') == False:
         os.makedirs(workingDirectory + '/eob/', exist_ok=True)
         os.chdir(workingDirectory + '/eob/')
-        generate_INOB_file(channelLabels, 8, fn='INOB', indep=+1)
+        n3_inob(channelLabels, 8, fn='INOB', indep=+1)
         #os.system(set.BINBDGpath + 'KOBER.exe')
         run_external(set.bindingBinDir + 'KOBER.exe')
     if os.path.isdir(workingDirectory + '/eob-tni/') == False:
         os.makedirs(workingDirectory + '/eob-tni/', exist_ok=True)
         os.chdir(workingDirectory + '/eob-tni/')
-        generate_INOB_file(channelLabels, 15, fn='INOB', indep=+1)
+        n3_inob(channelLabels, 15, fn='INOB', indep=+1)
         #os.system(set.BINBDGpath + 'DROBER.exe')
         run_external(set.bindingBinDir + 'DROBER.exe')
     #and more ang momenta
@@ -226,46 +226,46 @@ def span_initial_basis(
     if os.path.isdir(workingDirectory + '/elu/') == False:
         os.makedirs(workingDirectory + '/elu/', exist_ok=True)
         os.chdir(workingDirectory + '/elu/')
-        generate_INLU(8, fn='INLUCN', fr=fr, indep=+1)
+        n3_inlu(8, fn='INLUCN', fr=fr, indep=+1)
         #os.system(set.BINBDGpath + 'LUDW_CN.exe')
         run_external(set.bindingBinDir + 'LUDW_CN.exe')
     if os.path.isdir(workingDirectory + '/elu-tni/') == False:
         os.makedirs(workingDirectory + '/elu-tni/', exist_ok=True)
         os.chdir(workingDirectory + '/elu-tni/')
-        generate_INLU(8, fn='INLU', fr=fr, indep=+1)
+        n3_inlu(8, fn='INLU', fr=fr, indep=+1)
         #os.system(set.BINBDGpath + 'DRLUD.exe')
         run_external(set.bindingBinDir + 'DRLUD.exe')
     os.chdir(workingDirectory)
-    generate_INLU(8, fn='INLU', fr=lfrags2, indep=set.parallel)
+    n3_inlu(8, fn='INLU', fr=lfrags2, indep=set.parallel)
     #os.system(set.BINBDGpath + 'DRLUD.exe')
     run_external(set.bindingBinDir + 'DRLUD.exe')
-    generate_INLU(8, fn='INLUCN', fr=lfrags2, indep=set.parallel)
+    n3_inlu(8, fn='INLUCN', fr=lfrags2, indep=set.parallel)
     #os.system(set.BINBDGpath + 'LUDW_CN.exe')
     run_external(set.bindingBinDir + 'LUDW_CN.exe')
-    generate_INOB_file(sfrags2, 8, fn='INOB', indep=set.parallel)
+    n3_inob(sfrags2, 8, fn='INOB', indep=set.parallel)
     #os.system(set.BINBDGpath + 'KOBER.exe')
     run_external(set.bindingBinDir + 'KOBER.exe')
-    generate_INOB_file(sfrags2, 15, fn='INOB', indep=set.parallel)
+    n3_inob(sfrags2, 15, fn='INOB', indep=set.parallel)
     #os.system(set.BINBDGpath + 'DROBER.exe')
     run_external(set.bindingBinDir + 'DROBER.exe')
-    generate_INQUAN_file(intwi=widi, relwi=widr, potf=set.nnPotFile)
-    parallel_INQUA(lfrags2,
-                   sfrags2,
-                   infile='INQUA_N',
-                   outFileNm='INQUA_N',
-                   single_path=workingDirectory + '/')
+    he3inquaN(intwi=widi, relwi=widr, potf=set.nnPotFile)
+    parallel_mod_of_3inqua(lfrags2,
+                           sfrags2,
+                           infile='INQUA_N',
+                           outFileNm='INQUA_N',
+                           single_path=workingDirectory + '/')
     insam(len(lfrags2))
     numberProcesses = max(2, min(len(lfrags2), set.maxProcesses))
     print('Number of Processes + 1: ', set.maxProcesses)
     #print('Anzahl der Sklaven + 1: %d' % anzproc)
     # exit()
-    generate_INEN_bdg(sbas,
-                      Jscattering,
-                      coefstr,
-                      fileName='INEN',
-                      pari=0,
-                      nzop=numberOfOperators,
-                      tni=set.tnni)
+    n3_inen_bdg(sbas,
+                Jscattering,
+                coefstr,
+                fileName='INEN',
+                pari=0,
+                nzop=numberOfOperators,
+                tni=set.tnni)
     if set.parallel == -1:
         testDiskUsage(workingDirectory, set.temporaryFree)
         #t0 = time.perf_counter()
@@ -292,13 +292,13 @@ def span_initial_basis(
     else:
         run_external(set.bindingBinDir + 'QUAFL_N.exe')
     if set.useV3B:
-        generate_INQUAN_file(intwi=widi, relwi=widr, potf=set.nnnPotFile)
-        parallel_INQUA(lfrags2,
-                       sfrags2,
-                       infile='INQUA_N',
-                       outFileNm='INQUA_N',
-                       tni=1,
-                       single_path=workingDirectory + '/')
+        he3inquaN(intwi=widi, relwi=widr, potf=set.nnnPotFile)
+        parallel_mod_of_3inqua(lfrags2,
+                               sfrags2,
+                               infile='INQUA_N',
+                               outFileNm='INQUA_N',
+                               tni=1,
+                               single_path=workingDirectory + '/')
         if set.parallel == -1:
             testDiskUsage(workingDirectory, set.temporaryFree)
             #t0 = time.perf_counter()
@@ -510,16 +510,16 @@ def span_population(
     channelLabels = set.psiChannelLabels
 
     os.chdir(workingDirectory)
-    generate_INLU(8, fn='INLU', fr=lfrags2, indep=set.parallel)
+    n3_inlu(8, fn='INLU', fr=lfrags2, indep=set.parallel)
     #os.system(set.BINBDGpath + 'DRLUD.exe')
     run_external(set.bindingBinDir + 'DRLUD.exe')
-    generate_INLU(8, fn='INLUCN', fr=lfrags2, indep=set.parallel)
+    n3_inlu(8, fn='INLUCN', fr=lfrags2, indep=set.parallel)
     #os.system(set.BINBDGpath + 'LUDW_CN.exe')
     run_external(set.bindingBinDir + 'LUDW_CN.exe')
-    generate_INOB_file(sfrags2, 8, fn='INOB', indep=set.parallel)
+    n3_inob(sfrags2, 8, fn='INOB', indep=set.parallel)
     #os.system(set.BINBDGpath + 'KOBER.exe')
     run_external(set.bindingBinDir + 'KOBER.exe')
-    generate_INOB_file(sfrags2, 15, fn='INOB', indep=set.parallel)
+    n3_inob(sfrags2, 15, fn='INOB', indep=set.parallel)
     #os.system(set.BINBDGpath + 'DROBER.exe')
     run_external(set.bindingBinDir + 'DROBER.exe')
 
@@ -543,7 +543,7 @@ def span_population(
 
     for cand in samp_ladder:
         # admit candidate basis as soon as the smallest EV is <0
-        if ((cand[2][0] < 10.1) &
+        if ((cand[2][0] < 0.1) &
                 # admit the basis only if the smallest N EVs (as def. by optRange) are <0
                 #if ((np.all(np.less(cand[2], np.zeros(len(cand[2]))))) &
             (cand[3] > minC)):
@@ -575,25 +575,25 @@ def end3(para, send_end):
 
     workingDirectory = os.getcwd()
 
-    generate_INQUAN_file(intwi=para[0], relwi=para[1], potf=para[3].nnPotFile)
-    parallel_INQUA(para[11],
-                   para[12],
-                   infile='INQUA_N',
-                   outFileNm='INQUA_N',
-                   single_path=para[13] + '/')
+    he3inquaN(intwi=para[0], relwi=para[1], potf=para[3].nnPotFile)
+    parallel_mod_of_3inqua(para[11],
+                           para[12],
+                           infile='INQUA_N',
+                           outFileNm='INQUA_N',
+                           single_path=para[13] + '/')
 
     insam(len(para[11]))
     numberProcesses = max(2, min(len(para[11]), para[3].maxProcesses))
     #print('Number of Processes + 1: ', para[3].maxProcesses)
     #print('Anzahl der Sklaven + 1: %d' % anzproc)
     # exit()
-    generate_INEN_bdg(bas=para[2],
-                      jValue=para[4],
-                      co=para[6],
-                      fileName='INEN',
-                      pari=0,
-                      nzop=para[9],
-                      tni=para[3].tnni)
+    n3_inen_bdg(bas=para[2],
+                jValue=para[4],
+                co=para[6],
+                fileName='INEN',
+                pari=0,
+                nzop=para[9],
+                tni=para[3].tnni)
 
     testDiskUsage(workingDirectory, para[3].temporaryFree)
     #t0 = time.perf_counter()
@@ -618,15 +618,13 @@ def end3(para, send_end):
         os.remove(filename)
 
     if para[3].useV3B:
-        generate_INQUAN_file(intwi=para[0],
-                             relwi=para[1],
-                             potf=para[3].nnnPotFile)
-        parallel_INQUA(para[11],
-                       para[12],
-                       infile='INQUA_N',
-                       outFileNm='INQUA_N',
-                       tni=1,
-                       single_path=para[13] + '/')
+        he3inquaN(intwi=para[0], relwi=para[1], potf=para[3].nnnPotFile)
+        parallel_mod_of_3inqua(para[11],
+                               para[12],
+                               infile='INQUA_N',
+                               outFileNm='INQUA_N',
+                               tni=1,
+                               single_path=para[13] + '/')
 
         testDiskUsage(workingDirectory, para[3].temporaryFree)
         #t0 = time.perf_counter()

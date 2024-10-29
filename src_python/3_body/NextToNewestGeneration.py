@@ -26,7 +26,7 @@ set = A3settings(uniqueDirectory=uniqueDirectory,
 
 dbg = True
 with open(set.resultsDirectory + 'dtype.dat', 'w') as outputFile:
-    outputFile.write(numeric_format)
+    outputFile.write(dt)
 
 #os.chdir(set.litpath3He)
 
@@ -43,15 +43,15 @@ try:
     # for par_run.py operation
     ScatteringBasis = np.arange(int(argumentList[3]), int(argumentList[4]) + 1)
     NumberOfScatteringBasisFunctions = len(ScatteringBasis)
-    basisTypes = [set.initialChannel] if int(
+    basisTypes = [set.boundstateChannel] if int(
         argumentList[3]) < 0 else set.ScatteringChannels
 except IndexError:
     # for manual operation
     NumberOfScatteringBasisFunctions = 1
     ScatteringBasis = np.arange(1, NumberOfScatteringBasisFunctions + 1)
-    basisTypes = [set.initialChannel] + set.ScatteringChannels  #
+    basisTypes = [set.boundstateChannel] + set.ScatteringChannels  #
 
-if set.initialChannel in basisTypes:
+if set.boundstateChannel in basisTypes:
     if os.path.isdir(set.helionDirectory) != False:
         print('<ECCE> removing the existing helion folder: %s.' %
               set.helionDirectory)
@@ -132,7 +132,7 @@ for basisType in basisTypes:
     # correspond to a "stronger" basis individuum
     targetEVinterval = [
         -9., 180.0
-    ] if basisType == set.initialChannel else [-3., 80.0]
+    ] if basisType == set.boundstateChannel else [-3., 80.0]
     removalGainFactor = 1.05
     maxOnPurge = 113
     maxOnTrail = 42
@@ -155,15 +155,15 @@ for basisType in basisTypes:
     tritonBindingEnergy = 8.482
     he3BindingEnergy = 7.72
     # get the initial, random basis seed to yield thresholds close to the results in a complete basis
-    channelThreshold = -6.0 if basisType == set.initialChannel else -0.24
+    channelThreshold = -6.0 if basisType == set.boundstateChannel else -0.24
     CgfCycles = 1
     # nRaces := |i|
-    nRaces = 1 if basisType == set.initialChannel else 1
+    nRaces = 1 if basisType == set.boundstateChannel else 1
     maximumOffspring = 6
 
     # > nState > produce/optimize/grow multiple bases with pseudo-random initial seeds
     for basisNo in range(NumberOfScatteringBasisFunctions):
-        workDir = set.helionDirectory if basisType == set.initialChannel else finalStatePaths[
+        workDir = set.helionDirectory if basisType == set.boundstateChannel else finalStatePaths[
             basisNo]
         basisPath = workDir + 'basis_struct/'
         os.chdir(workDir)
@@ -869,16 +869,16 @@ for basisType in basisTypes:
 
         lfrags = np.array(initialCiv[0])[:, 1].tolist()
         sfrags = np.array(initialCiv[0])[:, 0].tolist()
-        generate_INLU(8,
+        n3_inlu(8,
                 fn=set.resultsDirectory + 'INLU_%s' % suf,
                 fr=lfrags,
                 indep=-1)
-        generate_INLU(8,
+        n3_inlu(8,
                 fn=set.resultsDirectory + 'INLUCN_%s' % suf,
                 fr=lfrags,
                 indep=-1)
-        generate_INOB_file(sfrags, 8, fn=set.resultsDirectory + 'INOB_%s' % suf, indep=-1)
-        generate_INOB_file(sfrags,
+        n3_inob(sfrags, 8, fn=set.resultsDirectory + 'INOB_%s' % suf, indep=-1)
+        n3_inob(sfrags,
                 15,
                 fn=set.resultsDirectory + 'DRINOB_%s' % suf,
                 indep=-1)
