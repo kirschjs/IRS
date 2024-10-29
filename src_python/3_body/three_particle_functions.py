@@ -8,6 +8,9 @@ from settings import *
 #labelled spin configurations
 #   A   x   y  z   label  followed vy
 elem_spin_prods_3 = {
+    # He = npp : relevant spin-isospin functions; noX defines the total and intermediate (iso)spins;
+    # the y appendix identifies the relativ vector r_3-r_2 with the 1st Jacobi coord. while r_2-r_1
+    # is standard
     'he_no1':
     '  3  6  1  2            No1: t=0,T=1/2;s=1,S=1/2, l=even\n  1  1  1\n  1  3  2\n  1  4  1\n  2  3  1\n  3  1  2\n  3  2  1\n  4  1  1\n  1  3\n -1 12\n -1 12\n -1  3\n +1 12\n +1 12\n',
     'he_no1y':
@@ -34,6 +37,17 @@ elem_spin_prods_3 = {
     '  3  6  1  1            No6: t=1,T=1/2;s=0,S=1/2, l=even\n  1  1  1\n  1  2  3\n  2  1  3\n  1  4  1\n  2  3  1\n  3  2  1\n  4  1  1\n  1  3\n -1  3\n -1 12\n  1 12\n -1 12\n  1 12\n',
     'he_no6ii':
     '  3  6  1  2            No6: t=1,T=3/2;s=0,S=1/2, l=even\n  1  1  1\n  1  2  3\n  2  1  3\n  1  4  1\n  2  3  1\n  3  2  1\n  4  1  1\n  1  6\n -1  6\n  1  6\n -1  6\n  1  6\n -1  6\n',
+    # 3H = pnn : configs.
+    't_no1':
+    '  3  6  1  2            No1: t=0, S=1/2, l=even\n  1  1  1\n  1  3  4\n  1  4  3\n  2  3  3\n  3  1  4\n  3  2  3\n  4  1  3\n  1  3\n -1 12\n -1 12\n -1  3\n  1 12\n  1 12\n',
+    't_no2':
+    '  3  2  1  2            No2: t=0, S=3/2, l=even\n  1  1  1\n  1  3  3\n  3  1  3\n  1  2\n -1  2\n',
+    't_no3':
+    '  3  4  1  2            No3: t=0, S=1/2, l=odd\n  1  1  1\n  1  4  3\n  2  3  3\n  3  2  3\n  4  1  3\n  1  4\n -1  4\n -1  4\n  1  4\n',
+    't_no5':
+    '  3  3  1  2            No5: t=1, S=3/2, l=odd\n  1  1  1\n  3  3  1\n  3  1  3\n  1  3  3\n -2  3\n  1  6\n  1  6\n',
+    't_no6':
+    '  3  6  1  2            No6: t=1, S=1/2, l=even\n  1  1  1\n  1  4  3\n  2  3  3\n  3  2  3\n  4  1  3\n  3  4  1\n  4  3  1\n  1 12\n -1 12\n  1 12\n -1 12\n -1  3\n  1  3\n',
 }
 
 
@@ -726,7 +740,7 @@ def lit_3inen(BUECO,
     return
 
 
-def he3inqua(intwi=[], relwi=[], potf=''):
+def he3inquaN(intwi=[], relwi=[], potf='', inquaout='INQUA_N'):
     s = ''
     # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
     s += ' 10  8  9  3 00  0  0  0  0\n%s\n' % potf
@@ -754,7 +768,7 @@ def he3inqua(intwi=[], relwi=[], potf=''):
             s += '1.'.rjust(12 * (bb % 6 + 1))
             for ii in range(int(tmpln - int(bb / 6))):
                 s += '\n'
-    with open('INQUA_N', 'w') as outfile:
+    with open(inquaout, 'w') as outfile:
         outfile.write(s)
     return
 
