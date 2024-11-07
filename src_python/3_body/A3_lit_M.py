@@ -53,16 +53,16 @@ with open(set.resultsDirectory + 'kRange.dat', 'wb') as f:
     f.truncate()
 f.close()
 suffix = '_ref'
-he_iw, he_rw, he_frgs = retrieve_he3_M(set.resultsDirectory + 'INQUA_V18' +
+he_iw, he_rw, he_frgs = retrieve_he3_N(set.resultsDirectory + 'INQUA_V18' +
                                        suffix)
-HelBasDimRef = len(sum(sum(he_rw, []), []))
+HelBasDimRef = sum([np.prod(pair) for pair in he_frgs])
 
 for nB in range(numScatteringBases):
 
     suffix = '_fin-%d' % int(nB + 1)
-    final_iw, final_rw, final_frgs = retrieve_he3_M(set.resultsDirectory +
+    final_iw, final_rw, final_frgs = retrieve_he3_N(set.resultsDirectory +
                                                     'INQUA_V18%s' % suffix)
-    FinBasDimRef = len(sum(sum(final_rw, []), []))
+    FinBasDimRef = sum([np.prod(pair) for pair in he_frgs])
     with open(
             set.resultsDirectory + 'BareBasDims_%d.dat' % ScatteringBases[nB],
             'wb') as f:
@@ -151,12 +151,10 @@ for nB in range(numScatteringBases):
                             for name in glob.glob('*.log'):
                                 os.remove(name)
                             break
-                    rwtttmp = he_rw + [
-                        relwLIT[sum([len(fgg) for fgg in intwLIT[:lit_zerl]]):
-                                sum([len(fgg) for fgg in intwLIT[:lit_zerl]]) +
-                                len(intwLIT[lit_zerl])]
-                    ]
-                    lit_3inqua_M(intwi=he_iw + [intwLIT[lit_zerl]],
+
+                    rwtttmp = he_rw + [relwLIT[lit_zerl]]
+
+                    lit_3inqua_N(intwi=he_iw + [intwLIT[lit_zerl]],
                                  relwi=rwtttmp,
                                  anzo=11,
                                  LREG='  1  0  0  0  0  0  0  0  0  1  1',
@@ -178,7 +176,7 @@ for nB in range(numScatteringBases):
                 slave_pit = set.resultsDirectory + 'tmp_%d' % para
                 cmdlu = set.litBinDir + 'juelmanoo.exe'
                 cmdob = set.litBinDir + 'jobelmanoo.exe'
-                cmdqu = set.litBinDir + 'jquelmanoo.exe'
+                cmdqu = set.litBinDir + 'jquelmanooN.exe'
                 print('%s in %s' % (cmdlu, slave_pit))
                 plu = subprocess.Popen(shlex.split(cmdlu),
                                        stdout=subprocess.PIPE,
@@ -385,12 +383,14 @@ for nB in range(numScatteringBases):
                                     print('file <%s> not found.' % fna)
                                 fortranIn = FortranFile(
                                     kompo_vects_bare[0], 'r').read_reals(float)
-                                #print(fortranIn[::100])
+                                print(fortranIn[::100], np.shape(fortranIn))
+
                                 tDim = int(np.sqrt(np.shape(fortranIn)[0]))
+
                                 OutBasDimFr = int(tDim - HelBasDimRef)
-                                #print(
-                                #    'processing final fragment: %s\ndim(he_bare) = %d ; dim(fin) = %d ; dim(total) = %d'
-                                #    % (fna, HelBasDimRef, OutBasDimFr, tDim))
+                                print(
+                                    'processing final fragment: %s\ndim(he_bare) = %d ; dim(fin) = %d ; dim(total) = %d'
+                                    % (fna, HelBasDimRef, OutBasDimFr, tDim))
                                 subIndices = [
                                     range((HelBasDimRef + ni) * tDim,
                                           (HelBasDimRef + ni) * tDim +

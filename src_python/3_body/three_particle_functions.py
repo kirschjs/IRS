@@ -952,3 +952,116 @@ def retrieve_he3_M(inqua):
                 np.savetxt(f, [ws], fmt='%12.4f', delimiter=' ; ')
     f.close()
     return iw, rw, frgm
+
+
+def retrieve_he3_N(inqua):
+
+    relw = []
+    intw = []
+    frgm = []
+    inq = [line for line in open(inqua)]
+
+    lineNR = 0
+    while lineNR < len(inq):
+        if ((re.search('Z', inq[lineNR]) != None) |
+            (re.search('z', inq[lineNR]) != None)):
+            break
+        lineNR += 1
+    if lineNR == len(inq):
+        print('no <Z> qualifier found in <INQUA>!')
+        exit()
+
+    while lineNR < len(inq):
+
+        try:
+            anziw = int(inq[lineNR].split()[0])
+        except:
+            break
+
+        anzbvLN = 2 * anziw if anziw <= 6 else 3 * anziw
+        anzrw = int(inq[lineNR + 1].split()[1])
+        anzrwLN = int(np.ceil(float(anzrw) / 6))
+
+        frgm.append([anziw, anzrw])
+        intwtmp = []
+        relwtmp = []
+        for iws in range(anziw):
+            intwtmp += [float(inq[lineNR + 2 + iws].strip())]
+        for rws in range(anzrwLN):
+            for rw in inq[lineNR + 2 + int(inq[lineNR].split()[0]) +
+                          rws].split():
+                relwtmp += [float(rw)]
+        intw += [intwtmp]
+        relw += [relwtmp]
+
+        lineNR += anziw + anzrwLN + anzbvLN + 2
+
+    iw = intw
+    rw = relw
+
+    with open('intw3he.dat', 'wb') as f:
+        for ws in iw:
+            np.savetxt(f, [ws], fmt='%12.4f', delimiter=' ; ')
+    f.close()
+    with open('relw3he.dat', 'wb') as f:
+        for ws in rw:
+            np.savetxt(f, [ws], fmt='%12.4f', delimiter=' ; ')
+    f.close()
+
+    return iw, rw, frgm
+
+
+def lit_3inqua_N(intwi=[],
+                 relwi=[],
+                 LREG='',
+                 anzo=13,
+                 withhead=True,
+                 bnd='',
+                 outFileNm='INQUA'):
+
+    out = ''
+    if (withhead):
+        # NBAND1,NBAND2,NBAND3,NBAND4,NBAND5,NAUS,MOBAUS,LUPAUS,NBAUS
+        out += ' 10  8  9  3 00  0  0  0  0\n'
+        if (LREG == ''):
+            for n in range(anzo):
+                out += '  1'
+        else:
+            out += LREG
+        out += '\n'
+        #bdginq = [line for line in open(bnd)][2:]
+        #for line in bdginq:
+        #    out += line
+        #else:
+        pieces_counter = 0
+        bv_counter = 1
+        for n in range(len(relwi)):
+            pieces_counter += 1
+            out += '%3d%60s%s\n%3d%3d\n' % (
+                len(intwi[n]), '', 'Z%d BVs %d - %d' %
+                (pieces_counter, bv_counter, bv_counter - 1 + len(intwi[n])),
+                len(intwi[n]), len(relwi[n]))
+            bv_counter += len(intwi[n])
+            for bv in intwi[n]:
+                out += '%36s%-12.6f\n' % ('', float(bv))
+            for rw in range(0, len(relwi[n])):
+                out += '%12.6f' % float(relwi[n][rw])
+                if ((rw != (len(relwi[n]) - 1)) & ((rw + 1) % 6 == 0)):
+                    out += '\n'
+            out += '\n'
+            for bb in range(0, len(intwi[n])):
+                out += '  1  1\n'
+                if len(intwi[n]) < 7:
+                    out += '1.'.rjust(12 * (bb + 1))
+                    out += '\n'
+                else:
+                    if bb < 6:
+                        out += '1.'.rjust(12 * (bb + 1))
+                        out += '\n\n'
+                    else:
+                        out += '\n'
+                        out += '1.'.rjust(12 * (bb % 6 + 1))
+                        out += '\n'
+    with open(outFileNm, 'w') as outfile:
+        outfile.write(out)
+    return

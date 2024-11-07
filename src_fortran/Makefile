@@ -60,10 +60,10 @@ juelmanoo: juelmanoo.o par/juelma
 jobelmanoo: jobelmanoo.o par/jobelma
 	$(F77) $(FFLAGS) -o jobelmanoo.exe jobelmanoo.o $(LIBS)
 
-jquelmanoo: jquelmanoo.o par/jquelma
-	$(F77) $(FFLAGS) -o jquelmanoo.exe jquelmanoo.o
+jquelmanooN: jquelmanooN.o par/jquelma
+	$(F77) $(FFLAGS) -o jquelmanooN.exe jquelmanooN.o
 
 jenelmasnoo: jenelmasnoo.o par/jenelmas
 	$(F77) $(FFLAGS) -o jenelmasnoo.exe jenelmasnoo.o  $(LIBS)
 
-all: LUDW_CN KOBER KOBERp DROBER DRLUD QUAFL_M QUAFL_N DRQUA_AK_M DRQUA_AK_N DR2END_NORMAL TDR2END_NORMAL TDR2END_PYpoolnoo juelmanoo jobelmanoo jquelmanoo jenelmasnoo clean
+all: LUDW_CN KOBER KOBERp DROBER DRLUD QUAFL_M QUAFL_N DRQUA_AK_M DRQUA_AK_N DR2END_NORMAL TDR2END_NORMAL TDR2END_PYpoolnoo juelmanoo jobelmanoo jquelmanooN jenelmasnoo clean
